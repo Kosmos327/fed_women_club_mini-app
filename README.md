@@ -71,3 +71,10 @@ Type checking:
 ```bash
 npm run typecheck
 ```
+
+## CI
+
+- GitHub Actions CI intentionally runs without npm cache while the repository has no `package-lock.json`.
+- Dependency install in CI uses fallback logic: `npm ci` when lock-file exists, otherwise `npm install`.
+- After adding `package-lock.json`, npm cache in `actions/setup-node` can be enabled again.
+
