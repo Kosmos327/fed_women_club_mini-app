@@ -15,8 +15,11 @@ export type ApiUser = {
 export type ApiClient = {
   id?: number | string;
   full_name?: string;
+  phone?: string;
+  contact_email?: string;
   city?: string;
   city_name?: string;
+  city_slug?: string;
   custom_city?: string;
 } & Record<string, unknown>;
 
@@ -66,6 +69,15 @@ export type ApiPartner = {
   image_url?: string;
   logo_url?: string;
   is_active?: boolean;
+} & Record<string, unknown>;
+
+
+export type ApiClientUpdatePayload = {
+  full_name?: string;
+  phone?: string;
+  contact_email?: string;
+  city_slug?: string;
+  custom_city?: string;
 } & Record<string, unknown>;
 
 export type MiniAppLoginSuccess = {
@@ -121,7 +133,16 @@ export async function miniAppLogin(launchParams: string): Promise<MiniAppLoginRe
 }
 
 export async function getMe<T = { user?: ApiUser; client?: ApiClient } & Record<string, unknown>>(): Promise<T> {
-  return apiFetch<T>('/api/v1/users/me');
+  return apiFetch<T>('/api/v1/clients/me');
+}
+
+export async function updateMe<T = { user?: ApiUser; client?: ApiClient } & Record<string, unknown>>(
+  payload: ApiClientUpdatePayload,
+): Promise<T> {
+  return apiFetch<T>('/api/v1/clients/me', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function getSubscription<T = ApiSubscription>(): Promise<T> {
