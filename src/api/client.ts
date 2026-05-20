@@ -38,6 +38,23 @@ export type ApiVerification = {
   used_at?: string | null;
 } & Record<string, unknown>;
 
+export type ApiPartner = {
+  id?: number | string;
+  name?: string;
+  title?: string;
+  category?: string;
+  city?: string;
+  city_name?: string;
+  address?: string;
+  description?: string;
+  short_description?: string;
+  discount_text?: string;
+  benefit_text?: string;
+  image_url?: string;
+  logo_url?: string;
+  is_active?: boolean;
+} & Record<string, unknown>;
+
 export type MiniAppLoginSuccess = {
   access_token: string;
   token_type: string;
@@ -98,8 +115,8 @@ export async function getSubscription<T = ApiSubscription>(): Promise<T> {
   return apiFetch<T>('/api/v1/subscription');
 }
 
-export async function getPartners<T = Record<string, unknown>>(): Promise<T> {
-  return apiFetch<T>('/api/v1/partners');
+export async function getPartners<T = ApiPartner[]>(): Promise<T> {
+  return apiFetch<T>('/api/v1/clients/catalog/partners');
 }
 
 export async function getVerifications<T = ApiVerification[]>(): Promise<T> {
