@@ -23,19 +23,33 @@ export function HomePage({
   onSubscription,
   onProfile,
 }: HomePageProps) {
-  const displayName = [
+  const pickFirstText = (values: unknown[], fallback: string) => {
+    const found = values.find((value) => typeof value === 'string' && value.trim().length > 0);
+    return typeof found === 'string' ? found : fallback;
+  };
+
+  const selectedCityName =
+    client?.selected_city && typeof client.selected_city === 'object' && 'name' in client.selected_city
+      ? String(client.selected_city.name ?? '')
+      : '';
+
+  const displayName = pickFirstText([
     client?.full_name,
+    client?.name,
     user?.full_name,
+    user?.name,
     user?.email,
     user?.login,
     userName,
-  ].find((value) => typeof value === 'string' && value.trim().length > 0) || 'Участница клуба';
+  ], 'Участница клуба');
 
-  const displayCity = [
-    client?.city,
+  const displayCity = pickFirstText([
     client?.city_name,
     client?.custom_city,
-  ].find((value) => typeof value === 'string' && value.trim().length > 0) || 'Город не выбран';
+    client?.city,
+    client?.selected_city_name,
+    selectedCityName,
+  ], 'Город не выбран');
 
   const isSubscriptionActive = Boolean(subscription?.is_active ?? subscription?.active);
   const subscriptionStatus = isSubscriptionActive ? 'активна' : 'не активна';

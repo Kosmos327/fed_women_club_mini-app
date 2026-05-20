@@ -49,10 +49,34 @@ const extractProfileApiState = (data: unknown): ProfileApiState => {
 
   const nestedData = isRecord(data.data) ? data.data : null;
   const source = nestedData ?? data;
+  const profile = isRecord(source.profile) ? source.profile : null;
+  const user = isRecord(source.user)
+    ? source.user
+    : isRecord(profile?.user)
+      ? profile.user
+      : null;
+
+  const clientSource = isRecord(source.client)
+    ? source.client
+    : isRecord(profile?.client)
+      ? profile.client
+      : (profile ?? source);
+  const client = isRecord(clientSource)
+    ? (clientSource as ApiClient)
+    : null;
+
+  if (import.meta.env.DEV) {
+    console.debug('getMe response shape', {
+      hasData: Boolean(nestedData),
+      hasProfile: Boolean(profile),
+      hasUser: Boolean(user),
+      hasClient: Boolean(client),
+    });
+  }
 
   return {
-    user: isRecord(source.user) ? (source.user as ApiUser) : null,
-    client: isRecord(source.client) ? (source.client as ApiClient) : null,
+    user: user as ApiUser | null,
+    client,
   };
 };
 
@@ -88,6 +112,19 @@ export default function App() {
 
   const noLaunchParamsMessage = 'Откройте приложение внутри VK';
 
+  const refreshProfile = async (fallback?: { user?: ApiUser | null; client?: ApiClient | null }) => {
+    const meResponse = await getMe();
+    const profileState = extractProfileApiState(meResponse);
+    const nextUser = profileState.user ?? fallback?.user ?? null;
+    const nextClient = profileState.client ?? fallback?.client ?? null;
+
+    setUser(nextUser);
+    setClient(nextClient);
+    setUserName(String(nextUser?.first_name ?? nextUser?.name ?? nextClient?.full_name ?? nextClient?.name ?? ''));
+
+    return profileState;
+  };
+
   useEffect(() => {
     const launchParams = getRawVkLaunchParams();
 
@@ -108,25 +145,11 @@ export default function App() {
         const successResponse = response as MiniAppLoginSuccess;
         setAccessToken(successResponse.access_token);
 
-        const [meData, subscriptionData] = await Promise.all([
-          getMe(),
+        const [_, subscriptionData] = await Promise.all([
+          refreshProfile({ user: successResponse.user, client: successResponse.client }),
           getSubscription(),
         ]);
-        const meProfileState = extractProfileApiState(meData);
-
-        setUser(meProfileState.user ?? successResponse.user ?? null);
-        setClient(meProfileState.client ?? successResponse.client ?? null);
         setSubscription(subscriptionData ?? null);
-
-        setUserName(
-          String(
-            meProfileState.user?.first_name
-              ?? successResponse.user?.first_name
-              ?? meProfileState.user?.name
-              ?? successResponse.user?.name
-              ?? '',
-          ),
-        );
         setAuthState('ready');
       })
       .catch(() => {
@@ -252,26 +275,7 @@ export default function App() {
     try {
       const updateResponse = await updateMe(payload);
       const updateProfileState = extractProfileApiState(updateResponse);
-
-      if (updateProfileState.client) {
-        setClient(updateProfileState.client);
-      }
-
-      if (updateProfileState.user) {
-        setUser(updateProfileState.user);
-      }
-
-      const meResponse = await getMe();
-      const freshProfileState = extractProfileApiState(meResponse);
-
-      if (freshProfileState.client) {
-        setClient(freshProfileState.client);
-      }
-
-      if (freshProfileState.user) {
-        setUser(freshProfileState.user);
-        setUserName(String(freshProfileState.user.first_name ?? freshProfileState.user.name ?? ''));
-      }
+      await refreshProfile({ user: updateProfileState.user, client: updateProfileState.client });
 
       setProfileUpdateSuccessMessage('Профиль сохранён');
     } catch {
@@ -280,6 +284,17 @@ export default function App() {
       setIsProfileUpdating(false);
     }
   };
+
+  const handleProfileBack = async () => {
+    try {
+      await refreshProfile();
+    } catch {
+      // noop: if refresh fails, user still can return to home with previous state
+    } finally {
+      setPage('home');
+    }
+  };
+
   const content = useMemo(() => {
     if (authState === 'loading') return <LoadingState />;
     if (authState === 'join_required') return <JoinViaBotPage />;
@@ -344,7 +359,7 @@ export default function App() {
     if (page === 'profile') {
       return (
         <ProfilePage
-          onBack={() => setPage('home')}
+          onBack={handleProfileBack}
           client={client}
           user={user}
           onSave={handleUpdateProfile}
