@@ -71,3 +71,26 @@ Type checking:
 ```bash
 npm run typecheck
 ```
+
+## CI
+
+В репозитории настроен GitHub Actions workflow: `.github/workflows/ci.yml`.
+
+Pipeline запускается на:
+- `pull_request`;
+- `push` в `main`.
+
+Проверки в CI:
+- установка зависимостей (`npm ci`, если есть `package-lock.json`, иначе `npm install`);
+- `npm run typecheck`;
+- `npm run build`.
+
+`npm run lint` намеренно не включён в CI, пока в репозитории не добавлена рабочая конфигурация ESLint.
+
+## Критерий готовности PR
+
+PR считается готовым к merge только после успешных проверок:
+- `npm run typecheck`;
+- `npm run build`;
+- GitHub Actions CI (workflow `CI`).
+
