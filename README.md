@@ -1,36 +1,26 @@
-# Bloom Club — VK Mini App Frontend (MVP Skeleton)
+# Bloom Club — VK Mini App Frontend
 
-Это frontend-репозиторий VK Mini App для проекта Bloom Club / Женский клуб.
+Это frontend-часть VK Mini App для проекта Bloom Club (женский клуб), собранная на React + TypeScript + Vite + VKUI + VK Bridge.
 
-- VK App: https://vk.com/app54600832
-- VK_APP_ID: `54600832`
-- Backend (отдельный репозиторий): `Kosmos327/fed_women_club_WEB`
+## Технологии
 
-## Что реализовано
-
-- React + TypeScript + Vite skeleton для VK Mini App.
-- Базовая интеграция с backend login endpoint:
-  - `POST /api/v1/auth/vk-miniapp-login`
-- Получение raw launch params из `window.location.search`.
-- Состояния приложения:
-  - загрузка,
-  - успешный вход,
-  - `join_via_bot_required`,
-  - отсутствие launch params,
-  - ошибка авторизации.
-- Базовые страницы-заглушки в VKUI-стиле.
+- React
+- TypeScript
+- Vite
+- VKUI
+- VK Bridge
 
 ## Локальный запуск
 
-1. Установите зависимости:
+1. Установить зависимости:
 
 ```bash
 npm install
 ```
 
-2. Создайте `.env` на основе `.env.example`.
+2. Создать `.env` по примеру `.env.example`.
 
-3. Запустите dev сервер:
+3. Запустить dev-сервер:
 
 ```bash
 npm run dev
@@ -44,30 +34,39 @@ VITE_VK_APP_ID=54600832
 VITE_VK_BOT_URL=https://vk.com/club_or_bot_link_here
 ```
 
-- `VITE_API_BASE_URL` используется для запросов к backend API.
-- `VITE_VK_BOT_URL` используется в JoinViaBotPage.
+- `VITE_API_BASE_URL` — базовый URL backend API.
+- `VITE_VK_APP_ID` — ID VK Mini App.
+- `VITE_VK_BOT_URL` — ссылка для сценария join via bot.
 
 ## Безопасность
 
-`VK_APP_SECRET` **не должен** попадать во frontend и не используется в этом репозитории.
-Проверка подписи launch params должна происходить только на backend.
+`VK_APP_SECRET` **запрещено** хранить во frontend (в репозитории, `.env`, клиентском коде, CI variables для frontend-сборки).
 
-## Build
+Проверка подписи launch params должна выполняться только на backend.
 
-Production build:
+## Backend endpoint
 
-```bash
-npm run build
-```
+Для авторизации используется endpoint:
 
-Preview production build:
+- `POST /api/v1/auth/vk-miniapp-login`
 
-```bash
-npm run preview
-```
-
-Type checking:
+## Проверки и команды
 
 ```bash
 npm run typecheck
+npm run build
+npm run preview
 ```
+
+## CI
+
+GitHub Actions workflow (`.github/workflows/ci.yml`) запускается на:
+
+- `pull_request`
+- `push` в `main`
+
+CI выполняет:
+
+1. Установку зависимостей (`npm ci`, если есть `package-lock.json`, иначе `npm install`).
+2. `npm run typecheck`
+3. `npm run build`
