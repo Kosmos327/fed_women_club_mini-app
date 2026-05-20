@@ -5,7 +5,11 @@ type ErrorStateProps = { message: string };
 export function ErrorState({ message }: ErrorStateProps) {
   return (
     <Group>
-      <Placeholder header="Ошибка входа">{message}</Placeholder>
+      <Placeholder>
+        <strong>Ошибка входа</strong>
+        <br />
+        {message}
+      </Placeholder>
     </Group>
   );
 }

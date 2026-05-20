@@ -8,7 +8,11 @@ type EmptyStateProps = {
 export function EmptyState({ header, description }: EmptyStateProps) {
   return (
     <Group>
-      <Placeholder header={header}>{description}</Placeholder>
+      <Placeholder>
+        <strong>{header}</strong>
+        <br />
+        {description}
+      </Placeholder>
     </Group>
   );
 }
