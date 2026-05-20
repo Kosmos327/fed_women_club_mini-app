@@ -34,6 +34,28 @@ import { ProfilePage } from './pages/ProfilePage';
 type AuthState = 'loading' | 'ready' | 'join_required' | 'no_launch_params' | 'error';
 type Page = 'home' | 'catalog' | 'partner' | 'privileges' | 'subscription' | 'profile';
 
+type ProfileApiState = {
+  user: ApiUser | null;
+  client: ApiClient | null;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const extractProfileApiState = (data: unknown): ProfileApiState => {
+  if (!isRecord(data)) {
+    return { user: null, client: null };
+  }
+
+  const nestedData = isRecord(data.data) ? data.data : null;
+  const source = nestedData ?? data;
+
+  return {
+    user: isRecord(source.user) ? (source.user as ApiUser) : null,
+    client: isRecord(source.client) ? (source.client as ApiClient) : null,
+  };
+};
+
 export default function App() {
   const [authState, setAuthState] = useState<AuthState>('loading');
   const [page, setPage] = useState<Page>('home');
@@ -90,12 +112,21 @@ export default function App() {
           getMe(),
           getSubscription(),
         ]);
+        const meProfileState = extractProfileApiState(meData);
 
-        setUser(meData.user ?? successResponse.user ?? null);
-        setClient(meData.client ?? successResponse.client ?? null);
+        setUser(meProfileState.user ?? successResponse.user ?? null);
+        setClient(meProfileState.client ?? successResponse.client ?? null);
         setSubscription(subscriptionData ?? null);
 
-        setUserName(String(meData.user?.first_name ?? successResponse.user?.first_name ?? meData.user?.name ?? successResponse.user?.name ?? ''));
+        setUserName(
+          String(
+            meProfileState.user?.first_name
+              ?? successResponse.user?.first_name
+              ?? meProfileState.user?.name
+              ?? successResponse.user?.name
+              ?? '',
+          ),
+        );
         setAuthState('ready');
       })
       .catch(() => {
@@ -219,14 +250,27 @@ export default function App() {
     setProfileUpdateSuccessMessage('');
 
     try {
-      const data = await updateMe(payload);
+      const updateResponse = await updateMe(payload);
+      const updateProfileState = extractProfileApiState(updateResponse);
 
-      if (data?.client) {
-        setClient(data.client);
+      if (updateProfileState.client) {
+        setClient(updateProfileState.client);
       }
 
-      if (data?.user) {
-        setUser(data.user);
+      if (updateProfileState.user) {
+        setUser(updateProfileState.user);
+      }
+
+      const meResponse = await getMe();
+      const freshProfileState = extractProfileApiState(meResponse);
+
+      if (freshProfileState.client) {
+        setClient(freshProfileState.client);
+      }
+
+      if (freshProfileState.user) {
+        setUser(freshProfileState.user);
+        setUserName(String(freshProfileState.user.first_name ?? freshProfileState.user.name ?? ''));
       }
 
       setProfileUpdateSuccessMessage('Профиль сохранён');
