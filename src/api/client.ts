@@ -5,6 +5,7 @@ let accessToken: string | null = localStorage.getItem(ACCESS_TOKEN_KEY);
 
 export type ApiUser = Record<string, unknown>;
 export type ApiClient = Record<string, unknown>;
+export type ApiSubscription = Record<string, unknown>;
 
 export type MiniAppLoginSuccess = {
   access_token: string;
@@ -62,7 +63,7 @@ export async function getMe<T = Record<string, unknown>>(): Promise<T> {
   return apiFetch<T>('/api/v1/users/me');
 }
 
-export async function getSubscription<T = Record<string, unknown>>(): Promise<T> {
+export async function getSubscription<T = ApiSubscription>(): Promise<T> {
   return apiFetch<T>('/api/v1/subscription');
 }
 
