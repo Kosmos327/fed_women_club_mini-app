@@ -4,6 +4,7 @@ import { LoadingState } from './components/LoadingState';
 import {
   clearAccessToken,
   getMe,
+  getCities,
   getPartners,
   getVerifications,
   getSubscription,
@@ -14,6 +15,7 @@ import {
   updateMe,
   setAccessToken,
   type ApiClient,
+  type ApiCity,
   type ApiPaymentRequest,
   type ApiSubscription,
   type ApiPartner,
@@ -109,6 +111,9 @@ export default function App() {
   const [isProfileUpdating, setIsProfileUpdating] = useState<boolean>(false);
   const [profileUpdateError, setProfileUpdateError] = useState<string>('');
   const [profileUpdateSuccessMessage, setProfileUpdateSuccessMessage] = useState<string>('');
+  const [cities, setCities] = useState<ApiCity[]>([]);
+  const [isCitiesLoading, setIsCitiesLoading] = useState<boolean>(false);
+  const [citiesError, setCitiesError] = useState<string>('');
 
   const noLaunchParamsMessage = 'Откройте приложение внутри VK';
 
@@ -261,10 +266,22 @@ export default function App() {
   };
 
 
-  const openProfilePage = () => {
+  const openProfilePage = async () => {
     setProfileUpdateError('');
     setProfileUpdateSuccessMessage('');
+    setIsCitiesLoading(true);
+    setCitiesError('');
     setPage('profile');
+
+    try {
+      const data = await getCities<ApiCity[]>();
+      setCities(Array.isArray(data) ? data : []);
+    } catch {
+      setCities([]);
+      setCitiesError('Не удалось загрузить список городов. Попробуйте обновить приложение.');
+    } finally {
+      setIsCitiesLoading(false);
+    }
   };
 
   const handleUpdateProfile = async (payload: ApiClientUpdatePayload) => {
@@ -366,6 +383,9 @@ export default function App() {
           isSaving={isProfileUpdating}
           saveError={profileUpdateError}
           saveSuccessMessage={profileUpdateSuccessMessage}
+          cities={cities}
+          isCitiesLoading={isCitiesLoading}
+          citiesError={citiesError}
         />
       );
     }
@@ -412,6 +432,9 @@ export default function App() {
     isProfileUpdating,
     profileUpdateError,
     profileUpdateSuccessMessage,
+    cities,
+    isCitiesLoading,
+    citiesError,
   ]);
 
   return content;

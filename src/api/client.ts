@@ -12,6 +12,12 @@ export type ApiUser = {
   login?: string;
 } & Record<string, unknown>;
 
+export type ApiCity = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
 export type ApiClient = {
   id?: number | string;
   full_name?: string;
@@ -147,6 +153,10 @@ export async function updateMe<T = { user?: ApiUser; client?: ApiClient } & Reco
 
 export async function getSubscription<T = ApiSubscription>(): Promise<T> {
   return apiFetch<T>('/api/v1/clients/me/subscription');
+}
+
+export async function getCities<T = ApiCity[]>(): Promise<T> {
+  return apiFetch<T>('/api/v1/clients/cities');
 }
 
 export async function getPartners<T = ApiPartner[]>(): Promise<T> {
