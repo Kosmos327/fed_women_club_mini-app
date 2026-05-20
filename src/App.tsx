@@ -8,9 +8,12 @@ import {
   getVerifications,
   getSubscription,
   createVerification,
+  createPaymentRequest,
+  markPaymentRequestPaid,
   miniAppLogin,
   setAccessToken,
   type ApiClient,
+  type ApiPaymentRequest,
   type ApiSubscription,
   type ApiPartner,
   type ApiUser,
@@ -47,6 +50,14 @@ export default function App() {
   const [isCreatingVerification, setIsCreatingVerification] = useState<boolean>(false);
   const [createdVerification, setCreatedVerification] = useState<ApiVerification | null>(null);
   const [createVerificationError, setCreateVerificationError] = useState<string>('');
+  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState<boolean>(false);
+  const [subscriptionError, setSubscriptionError] = useState<string>('');
+  const [paymentRequest, setPaymentRequest] = useState<ApiPaymentRequest | null>(null);
+  const [isCreatingPaymentRequest, setIsCreatingPaymentRequest] = useState<boolean>(false);
+  const [createPaymentRequestError, setCreatePaymentRequestError] = useState<string>('');
+  const [isMarkingPaymentPaid, setIsMarkingPaymentPaid] = useState<boolean>(false);
+  const [markPaymentPaidError, setMarkPaymentPaidError] = useState<string>('');
+  const [markPaymentPaidSuccessMessage, setMarkPaymentPaidSuccessMessage] = useState<string>('');
 
   const noLaunchParamsMessage = 'Откройте приложение внутри VK';
 
@@ -136,6 +147,60 @@ export default function App() {
     }
   };
 
+  const openSubscriptionPage = async () => {
+    setPage('subscription');
+    setIsSubscriptionLoading(true);
+    setSubscriptionError('');
+    setPaymentRequest(null);
+    setCreatePaymentRequestError('');
+    setMarkPaymentPaidError('');
+    setMarkPaymentPaidSuccessMessage('');
+
+    try {
+      const data = await getSubscription<ApiSubscription>();
+      setSubscription(data ?? null);
+    } catch {
+      setSubscriptionError('Не удалось загрузить подписку. Попробуйте обновить приложение.');
+      setSubscription(null);
+    } finally {
+      setIsSubscriptionLoading(false);
+    }
+  };
+
+  const handleCreatePaymentRequest = async () => {
+    setIsCreatingPaymentRequest(true);
+    setCreatePaymentRequestError('');
+    setMarkPaymentPaidError('');
+    setMarkPaymentPaidSuccessMessage('');
+
+    try {
+      const data = await createPaymentRequest<ApiPaymentRequest>();
+      setPaymentRequest(data ?? null);
+    } catch {
+      setCreatePaymentRequestError('Не удалось создать заявку на оплату. Попробуйте ещё раз.');
+    } finally {
+      setIsCreatingPaymentRequest(false);
+    }
+  };
+
+  const handleMarkPaymentPaid = async (paymentRequestId: string | number) => {
+    setIsMarkingPaymentPaid(true);
+    setMarkPaymentPaidError('');
+    setMarkPaymentPaidSuccessMessage('');
+
+    try {
+      const data = await markPaymentRequestPaid<ApiPaymentRequest>(paymentRequestId);
+      setPaymentRequest(data ?? paymentRequest);
+      setMarkPaymentPaidSuccessMessage(
+        String(data?.message ?? 'Заявка отправлена на проверку. После подтверждения администратором подписка станет активной.'),
+      );
+    } catch {
+      setMarkPaymentPaidError('Не удалось отметить оплату. Попробуйте ещё раз.');
+    } finally {
+      setIsMarkingPaymentPaid(false);
+    }
+  };
+
   const content = useMemo(() => {
     if (authState === 'loading') return <LoadingState />;
     if (authState === 'join_required') return <JoinViaBotPage />;
@@ -178,7 +243,25 @@ export default function App() {
 
       return <PrivilegesPage onBack={() => setPage('home')} verifications={verifications} />;
     }
-    if (page === 'subscription') return <SubscriptionPage onBack={() => setPage('home')} />;
+    if (page === 'subscription') {
+      if (isSubscriptionLoading) return <LoadingState />;
+      if (subscriptionError) return <ErrorState message={subscriptionError} />;
+
+      return (
+        <SubscriptionPage
+          onBack={() => setPage('home')}
+          subscription={subscription}
+          paymentRequest={paymentRequest}
+          isCreatingPaymentRequest={isCreatingPaymentRequest}
+          createPaymentRequestError={createPaymentRequestError}
+          onCreatePaymentRequest={handleCreatePaymentRequest}
+          isMarkingPaymentPaid={isMarkingPaymentPaid}
+          markPaymentPaidError={markPaymentPaidError}
+          markPaymentPaidSuccessMessage={markPaymentPaidSuccessMessage}
+          onMarkPaymentPaid={handleMarkPaymentPaid}
+        />
+      );
+    }
     if (page === 'profile') return <ProfilePage onBack={() => setPage('home')} />;
 
     return (
@@ -189,7 +272,7 @@ export default function App() {
         subscription={subscription}
         onCatalog={openCatalogPage}
         onPrivileges={openPrivilegesPage}
-        onSubscription={() => setPage('subscription')}
+        onSubscription={openSubscriptionPage}
         onProfile={() => setPage('profile')}
       />
     );
@@ -212,6 +295,14 @@ export default function App() {
     userName,
     verifications,
     verificationsError,
+    isSubscriptionLoading,
+    subscriptionError,
+    paymentRequest,
+    isCreatingPaymentRequest,
+    createPaymentRequestError,
+    isMarkingPaymentPaid,
+    markPaymentPaidError,
+    markPaymentPaidSuccessMessage,
   ]);
 
   return content;
