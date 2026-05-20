@@ -7,6 +7,7 @@ import {
   getPartners,
   getVerifications,
   getSubscription,
+  createVerification,
   miniAppLogin,
   setAccessToken,
   type ApiClient,
@@ -43,6 +44,9 @@ export default function App() {
   const [isVerificationsLoading, setIsVerificationsLoading] = useState<boolean>(false);
   const [verificationsError, setVerificationsError] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isCreatingVerification, setIsCreatingVerification] = useState<boolean>(false);
+  const [createdVerification, setCreatedVerification] = useState<ApiVerification | null>(null);
+  const [createVerificationError, setCreateVerificationError] = useState<string>('');
 
   const noLaunchParamsMessage = 'Откройте приложение внутри VK';
 
@@ -117,6 +121,21 @@ export default function App() {
     }
   };
 
+  const handleCreateVerification = async (partnerId: string) => {
+    setIsCreatingVerification(true);
+    setCreatedVerification(null);
+    setCreateVerificationError('');
+
+    try {
+      const data = await createVerification<ApiVerification>(partnerId);
+      setCreatedVerification(data ?? null);
+    } catch {
+      setCreateVerificationError('Не удалось получить код. Попробуйте ещё раз.');
+    } finally {
+      setIsCreatingVerification(false);
+    }
+  };
+
   const content = useMemo(() => {
     if (authState === 'loading') return <LoadingState />;
     if (authState === 'join_required') return <JoinViaBotPage />;
@@ -133,12 +152,26 @@ export default function App() {
           onBack={() => setPage('home')}
           onPartnerClick={(partner) => {
             setSelectedPartner(partner);
+            setCreatedVerification(null);
+            setCreateVerificationError('');
             setPage('partner');
           }}
         />
       );
     }
-    if (page === 'partner') return <PartnerPage selectedPartner={selectedPartner} onBack={() => setPage('catalog')} />;
+    if (page === 'partner') {
+      return (
+        <PartnerPage
+          selectedPartner={selectedPartner}
+          onBack={() => setPage('catalog')}
+          onCreateVerification={handleCreateVerification}
+          isCreatingVerification={isCreatingVerification}
+          createdVerification={createdVerification}
+          createVerificationError={createVerificationError}
+          onOpenPrivileges={openPrivilegesPage}
+        />
+      );
+    }
     if (page === 'privileges') {
       if (isVerificationsLoading) return <LoadingState />;
       if (verificationsError) return <ErrorState message={verificationsError} />;
@@ -171,6 +204,9 @@ export default function App() {
     partners,
     partnersError,
     selectedPartner,
+    createVerificationError,
+    createdVerification,
+    isCreatingVerification,
     subscription,
     user,
     userName,

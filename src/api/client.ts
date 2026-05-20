@@ -123,9 +123,8 @@ export async function getVerifications<T = ApiVerification[]>(): Promise<T> {
   return apiFetch<T>('/api/v1/clients/me/verifications');
 }
 
-export async function createVerification<T = Record<string, unknown>>(partnerId: string): Promise<T> {
-  return apiFetch<T>('/api/v1/verifications', {
+export async function createVerification<T = ApiVerification>(partnerId: string): Promise<T> {
+  return apiFetch<T>(`/api/v1/clients/partners/${partnerId}/verify`, {
     method: 'POST',
-    body: JSON.stringify({ partner_id: partnerId }),
   });
 }
