@@ -4,12 +4,14 @@ import { LoadingState } from './components/LoadingState';
 import {
   clearAccessToken,
   getMe,
+  getPartners,
   getVerifications,
   getSubscription,
   miniAppLogin,
   setAccessToken,
   type ApiClient,
   type ApiSubscription,
+  type ApiPartner,
   type ApiUser,
   type ApiVerification,
   type MiniAppLoginSuccess,
@@ -34,6 +36,10 @@ export default function App() {
   const [client, setClient] = useState<ApiClient | null>(null);
   const [subscription, setSubscription] = useState<ApiSubscription | null>(null);
   const [verifications, setVerifications] = useState<ApiVerification[]>([]);
+  const [partners, setPartners] = useState<ApiPartner[]>([]);
+  const [selectedPartner, setSelectedPartner] = useState<ApiPartner | null>(null);
+  const [isPartnersLoading, setIsPartnersLoading] = useState<boolean>(false);
+  const [partnersError, setPartnersError] = useState<string>('');
   const [isVerificationsLoading, setIsVerificationsLoading] = useState<boolean>(false);
   const [verificationsError, setVerificationsError] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -95,14 +101,44 @@ export default function App() {
     }
   };
 
+  const openCatalogPage = async () => {
+    setPage('catalog');
+    setIsPartnersLoading(true);
+    setPartnersError('');
+
+    try {
+      const data = await getPartners<ApiPartner[]>();
+      setPartners(Array.isArray(data) ? data : []);
+    } catch {
+      setPartners([]);
+      setPartnersError('Не удалось загрузить партнёров. Попробуйте обновить приложение.');
+    } finally {
+      setIsPartnersLoading(false);
+    }
+  };
+
   const content = useMemo(() => {
     if (authState === 'loading') return <LoadingState />;
     if (authState === 'join_required') return <JoinViaBotPage />;
     if (authState === 'no_launch_params') return <ErrorState message={noLaunchParamsMessage} />;
     if (authState === 'error') return <ErrorState message={errorMessage} />;
 
-    if (page === 'catalog') return <CatalogPage onBack={() => setPage('home')} />;
-    if (page === 'partner') return <PartnerPage onBack={() => setPage('home')} />;
+    if (page === 'catalog') {
+      if (isPartnersLoading) return <LoadingState />;
+      if (partnersError) return <ErrorState message={partnersError} />;
+
+      return (
+        <CatalogPage
+          partners={partners}
+          onBack={() => setPage('home')}
+          onPartnerClick={(partner) => {
+            setSelectedPartner(partner);
+            setPage('partner');
+          }}
+        />
+      );
+    }
+    if (page === 'partner') return <PartnerPage selectedPartner={selectedPartner} onBack={() => setPage('catalog')} />;
     if (page === 'privileges') {
       if (isVerificationsLoading) return <LoadingState />;
       if (verificationsError) return <ErrorState message={verificationsError} />;
@@ -118,7 +154,7 @@ export default function App() {
         user={user}
         client={client}
         subscription={subscription}
-        onCatalog={() => setPage('catalog')}
+        onCatalog={openCatalogPage}
         onPrivileges={openPrivilegesPage}
         onSubscription={() => setPage('subscription')}
         onProfile={() => setPage('profile')}
@@ -131,6 +167,10 @@ export default function App() {
     isVerificationsLoading,
     noLaunchParamsMessage,
     page,
+    isPartnersLoading,
+    partners,
+    partnersError,
+    selectedPartner,
     subscription,
     user,
     userName,
