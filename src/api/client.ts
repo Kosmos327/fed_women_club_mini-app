@@ -27,6 +27,17 @@ export type ApiSubscription = {
   end_date?: string | null;
 } & Record<string, unknown>;
 
+export type ApiVerification = {
+  id?: number | string;
+  code?: string;
+  status?: string;
+  partner_name?: string;
+  partner?: string | Record<string, unknown>;
+  expires_at?: string | null;
+  created_at?: string | null;
+  used_at?: string | null;
+} & Record<string, unknown>;
+
 export type MiniAppLoginSuccess = {
   access_token: string;
   token_type: string;
@@ -91,8 +102,8 @@ export async function getPartners<T = Record<string, unknown>>(): Promise<T> {
   return apiFetch<T>('/api/v1/partners');
 }
 
-export async function getVerifications<T = Record<string, unknown>>(): Promise<T> {
-  return apiFetch<T>('/api/v1/verifications');
+export async function getVerifications<T = ApiVerification[]>(): Promise<T> {
+  return apiFetch<T>('/api/v1/clients/me/verifications');
 }
 
 export async function createVerification<T = Record<string, unknown>>(partnerId: string): Promise<T> {
