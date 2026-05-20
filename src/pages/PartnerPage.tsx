@@ -6,7 +6,7 @@ export function PartnerPage({ onBack }: { onBack: () => void }) {
     <AppShell title="Партнёр">
       <Group>
         <CardGrid size="l">
-          <ContentCard header="Здесь будет карточка партнёра" text="Партнёр клуба. Данные карточки и условий привилегий будут приходить из backend API." />
+          <ContentCard headers="Здесь будет карточка партнёра" text="Партнёр клуба. Данные карточки и условий привилегий будут приходить из backend API." />
         </CardGrid>
         <Div><Button onClick={onBack}>Назад</Button></Div>
       </Group>
