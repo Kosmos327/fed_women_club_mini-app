@@ -7,6 +7,7 @@ import {
   getCities,
   getPartners,
   getVerifications,
+  getPartnerOffers,
   getSubscription,
   createVerification,
   createPaymentRequest,
@@ -19,6 +20,7 @@ import {
   type ApiPaymentRequest,
   type ApiSubscription,
   type ApiPartner,
+  type ApiOffer,
   type ApiUser,
   type ApiVerification,
   type ApiClientUpdatePayload,
@@ -100,6 +102,10 @@ export default function App() {
   const [isCreatingVerification, setIsCreatingVerification] = useState<boolean>(false);
   const [createdVerification, setCreatedVerification] = useState<ApiVerification | null>(null);
   const [createVerificationError, setCreateVerificationError] = useState<string>('');
+  const [partnerOffers, setPartnerOffers] = useState<ApiOffer[]>([]);
+  const [isPartnerOffersLoading, setIsPartnerOffersLoading] = useState<boolean>(false);
+  const [partnerOffersError, setPartnerOffersError] = useState<string>('');
+  const [selectedOfferIdForVerification, setSelectedOfferIdForVerification] = useState<string>('');
   const [isSubscriptionLoading, setIsSubscriptionLoading] = useState<boolean>(false);
   const [subscriptionError, setSubscriptionError] = useState<string>('');
   const [paymentRequest, setPaymentRequest] = useState<ApiPaymentRequest | null>(null);
@@ -196,13 +202,17 @@ export default function App() {
     }
   };
 
-  const handleCreateVerification = async (partnerId: string) => {
+  const handleCreateVerification = async (partnerId: string, offerId?: string) => {
     setIsCreatingVerification(true);
     setCreatedVerification(null);
     setCreateVerificationError('');
+    setSelectedOfferIdForVerification(offerId ?? '');
 
     try {
-      const data = await createVerification<ApiVerification>(partnerId);
+      const data = await createVerification<ApiVerification>(
+        partnerId,
+        offerId ? { offer_id: offerId } : undefined,
+      );
       setCreatedVerification(data ?? null);
     } catch {
       setCreateVerificationError('Не удалось получить код. Попробуйте ещё раз.');
@@ -328,9 +338,26 @@ export default function App() {
           onBack={() => setPage('home')}
           onPartnerClick={(partner) => {
             setSelectedPartner(partner);
+            setPartnerOffers([]);
+            setIsPartnerOffersLoading(true);
+            setPartnerOffersError('');
             setCreatedVerification(null);
             setCreateVerificationError('');
+            setSelectedOfferIdForVerification('');
             setPage('partner');
+            const partnerId = partner?.id != null ? String(partner.id) : '';
+            if (!partnerId) {
+              setIsPartnerOffersLoading(false);
+              return;
+            }
+
+            getPartnerOffers<ApiOffer[]>(partnerId)
+              .then((offers) => setPartnerOffers(Array.isArray(offers) ? offers : []))
+              .catch(() => {
+                setPartnerOffers([]);
+                setPartnerOffersError('Не удалось загрузить услуги партнёра. Попробуйте обновить страницу.');
+              })
+              .finally(() => setIsPartnerOffersLoading(false));
           }}
         />
       );
@@ -342,6 +369,10 @@ export default function App() {
           onBack={() => setPage('catalog')}
           onCreateVerification={handleCreateVerification}
           isCreatingVerification={isCreatingVerification}
+          selectedOfferIdForVerification={selectedOfferIdForVerification}
+          offers={partnerOffers}
+          isOffersLoading={isPartnerOffersLoading}
+          offersError={partnerOffersError}
           createdVerification={createdVerification}
           createVerificationError={createVerificationError}
           onOpenPrivileges={openPrivilegesPage}
@@ -415,6 +446,10 @@ export default function App() {
     selectedPartner,
     createVerificationError,
     createdVerification,
+    partnerOffers,
+    isPartnerOffersLoading,
+    partnerOffersError,
+    selectedOfferIdForVerification,
     isCreatingVerification,
     subscription,
     user,
