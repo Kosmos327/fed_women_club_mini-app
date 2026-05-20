@@ -9,6 +9,19 @@ type CatalogPageProps = {
   onPartnerClick: (partner: ApiPartner) => void;
 };
 
+const resolvePartnerImage = (partner: ApiPartner): string | null => {
+  const imageSource = [
+    partner.photo_url,
+    partner.image_url,
+    partner.cover,
+    partner.avatar,
+    partner.logo,
+    (partner as Record<string, unknown>).logo_url,
+  ].find((value) => typeof value === 'string' && value.trim().length > 0);
+
+  return typeof imageSource === 'string' ? imageSource : null;
+};
+
 export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
   return (
     <AppShell title="Партнёры">
@@ -17,29 +30,36 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
         {partners.length === 0 ? (
           <EmptyState header="Партнёров пока нет" description="В вашем городе пока нет партнёров" />
         ) : (
-          <Div>
+          <Div className="partner-catalog-grid">
             {partners.map((partner, index) => {
               const partnerName = partner.name ?? partner.title ?? 'Партнёр клуба';
               const partnerCity = partner.city_name ?? partner.city;
               const partnerDescription = partner.description ?? partner.short_description;
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
+              const partnerImage = resolvePartnerImage(partner);
+              const categoryLabel = partner.category ?? 'Партнёр клуба';
 
               return (
-                <div key={String(partner.id ?? `${partnerName}-${index}`)}>
-                  <Card mode="shadow">
-                    <Div>
-                      <Title level="3" weight="2">{partnerName}</Title>
-                      {partner.category ? <Text style={{ marginTop: 8 }}>Категория: {partner.category}</Text> : null}
-                      {partnerCity ? <Text style={{ marginTop: 8 }}>Город: {partnerCity}</Text> : null}
-                      {partner.address ? <Text style={{ marginTop: 8 }}>Адрес: {partner.address}</Text> : null}
-                      {partnerDescription ? <Text style={{ marginTop: 8 }}>{partnerDescription}</Text> : null}
-                      {partnerBenefit ? <Text style={{ marginTop: 8 }}>Привилегия: {partnerBenefit}</Text> : null}
-                      <Spacing size={12} />
-                      <Button size="m" onClick={() => onPartnerClick(partner)}>Подробнее</Button>
-                    </Div>
-                  </Card>
-                  <Spacing size={12} />
-                </div>
+                <Card className="partner-card" mode="shadow" key={String(partner.id ?? `${partnerName}-${index}`)}>
+                  {partnerImage ? (
+                    <img className="partner-card__image" src={partnerImage} alt={partnerName} loading="lazy" />
+                  ) : (
+                    <div className="partner-card__placeholder">
+                      <Text weight="2">{categoryLabel}</Text>
+                    </div>
+                  )}
+                  <Div>
+                    <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
+                    {(partner.category || partnerCity) ? (
+                      <Text className="partner-card__meta">{[partner.category, partnerCity].filter(Boolean).join(' • ')}</Text>
+                    ) : null}
+                    {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}
+                    {partnerDescription ? <Text className="partner-card__description">{partnerDescription}</Text> : null}
+                    {partnerBenefit ? <Text className="partner-card__benefit">{partnerBenefit}</Text> : null}
+                    <Spacing size={12} />
+                    <Button className="partner-card__button" stretched size="m" onClick={() => onPartnerClick(partner)}>Подробнее</Button>
+                  </Div>
+                </Card>
               );
             })}
           </Div>

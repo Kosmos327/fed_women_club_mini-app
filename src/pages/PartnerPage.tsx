@@ -38,6 +38,18 @@ const resolveOfferPricing = (offer: ApiOffer) => {
   return { basePrice, discountPercent, finalPrice: computedFinalPrice };
 };
 
+const resolvePartnerImage = (partner: ApiPartner | null): string | null => {
+  if (!partner) return null;
+  const imageSource = [
+    partner.photo_url,
+    partner.image_url,
+    partner.cover,
+    (partner as Record<string, unknown>).logo_url,
+  ].find((value) => typeof value === 'string' && value.trim().length > 0);
+
+  return typeof imageSource === 'string' ? imageSource : null;
+};
+
 const getVerificationOfferLabel = (verification: ApiVerification | null, offers: ApiOffer[], selectedOfferId: string): string => {
   if (!verification) return '';
   const verificationOfferSource = [verification.offer_name, verification.offer_title, verification.service_name, verification.service_title]
@@ -64,6 +76,8 @@ export function PartnerPage({
   const partnerDescription = selectedPartner?.description ?? selectedPartner?.short_description;
   const partnerBenefit = selectedPartner?.discount_text ?? selectedPartner?.benefit_text;
   const partnerId = selectedPartner?.id != null ? String(selectedPartner.id) : '';
+  const partnerCity = selectedPartner?.city_name ?? selectedPartner?.city;
+  const partnerImage = resolvePartnerImage(selectedPartner);
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
 
   return (
@@ -71,34 +85,30 @@ export function PartnerPage({
       <Group>
         <Header>Партнёр</Header>
         <Div>
-          <Card mode="shadow">
+          <Card className="partner-hero" mode="shadow">
+            {partnerImage ? (
+              <img className="partner-hero__image" src={partnerImage} alt={partnerName} />
+            ) : (
+              <div className="partner-hero__placeholder">
+                <Text weight="2">{selectedPartner?.category ?? 'Партнёр клуба'}</Text>
+              </div>
+            )}
             <Div>
-              <Title level="2" weight="2">{partnerName}</Title>
-              {partnerDescription ? (
-                <>
-                  <Spacing size={8} />
-                  <Text>{partnerDescription}</Text>
-                </>
+              <Title level="1" weight="1">{partnerName}</Title>
+              {(selectedPartner?.category || partnerCity) ? (
+                <Text className="partner-hero__meta">{[selectedPartner?.category, partnerCity].filter(Boolean).join(' • ')}</Text>
               ) : null}
-              {selectedPartner?.address ? (
-                <>
-                  <Spacing size={8} />
-                  <Text>Адрес: {selectedPartner.address}</Text>
-                </>
-              ) : null}
-              {partnerBenefit ? (
-                <>
-                  <Spacing size={8} />
-                  <Text>Привилегия: {partnerBenefit}</Text>
-                </>
-              ) : null}
+              {selectedPartner?.address ? <Text className="partner-hero__address">{selectedPartner.address}</Text> : null}
+              {partnerDescription ? <Text className="partner-hero__description">{partnerDescription}</Text> : null}
+              {partnerBenefit ? <Text className="partner-hero__benefit">Привилегия: {partnerBenefit}</Text> : null}
             </Div>
           </Card>
         </Div>
+
         <Header>Услуги и привилегии</Header>
-        {isOffersLoading ? <Div><Text>Загружаем услуги…</Text></Div> : null}
-        {!isOffersLoading && offersError ? <Div><Text>{offersError}</Text></Div> : null}
-        {!isOffersLoading && !offersError && offers.length === 0 ? <Div><Text>У партнёра пока нет активных услуг.</Text></Div> : null}
+        {isOffersLoading ? <Div><Text className="state-note">Загружаем услуги…</Text></Div> : null}
+        {!isOffersLoading && offersError ? <Div><Text className="state-note state-note--error">Не удалось загрузить услуги партнёра</Text></Div> : null}
+        {!isOffersLoading && !offersError && offers.length === 0 ? <Div><Text className="state-note">У партнёра пока нет активных услуг</Text></Div> : null}
         {!isOffersLoading && !offersError && offers.length > 0
           ? offers.map((offer, index) => {
             const offerId = offer?.id != null ? String(offer.id) : '';
@@ -109,17 +119,26 @@ export function PartnerPage({
 
             return (
               <Div key={offerId || `offer-${index}`}>
-                <Card mode="shadow">
+                <Card className="offer-card" mode="shadow">
                   <Div>
-                    <Title level="3" weight="2">{offerName}</Title>
-                    {offerDescription ? (<><Spacing size={8} /><Text>{offerDescription}</Text></>) : null}
-                    {offer.terms ? (<><Spacing size={8} /><Text>Условия: {String(offer.terms)}</Text></>) : null}
-                    <Spacing size={8} />
-                    <Text>Базовая цена: {formatRubles(basePrice)}</Text>
-                    <Text>Скидка: {discountPercent != null ? `${discountPercent}%` : '—'}</Text>
-                    <Text>Цена со скидкой: {formatRubles(finalPrice)}</Text>
+                    <Title className="offer-card__title" level="2" weight="2">{offerName}</Title>
+                    {discountPercent != null ? <Text className="offer-card__badge">Скидка {discountPercent}%</Text> : null}
+                    {offerDescription ? <Text className="offer-card__description">{offerDescription}</Text> : null}
+                    {offer.terms ? <Text className="offer-card__terms">Условия: {String(offer.terms)}</Text> : null}
+
+                    <div className="offer-card__prices">
+                      <Text>Цена без скидки: {formatRubles(basePrice)}</Text>
+                      <Text>Скидка: {discountPercent != null ? `${discountPercent}%` : '—'}</Text>
+                      <Text weight="2">Цена для участницы: {formatRubles(finalPrice)}</Text>
+                    </div>
+
                     <Spacing size={12} />
-                    <Button onClick={() => onCreateVerification(partnerId, offerId)} disabled={!partnerId || !offerId || isCurrentOfferLoading}>
+                    <Button
+                      size="l"
+                      stretched
+                      onClick={() => onCreateVerification(partnerId, offerId)}
+                      disabled={!partnerId || !offerId || isCurrentOfferLoading}
+                    >
                       {isCurrentOfferLoading ? 'Получаем код…' : 'Получить код'}
                     </Button>
                   </Div>
@@ -141,12 +160,12 @@ export function PartnerPage({
 
         {createdVerification ? (
           <Div>
-            <Card mode="shadow">
+            <Card className="verification-success" mode="shadow">
               <Div>
                 <Title level="3" weight="2">Ваш код</Title>
                 <Spacing size={8} />
                 {createdVerification.code ? (
-                  <Title level="1" weight="1">{String(createdVerification.code)}</Title>
+                  <Title className="verification-success__code" level="1" weight="1">{String(createdVerification.code)}</Title>
                 ) : (
                   <Text>Код создан, проверьте раздел «Мои привилегии».</Text>
                 )}
@@ -164,14 +183,15 @@ export function PartnerPage({
                   </>
                 ) : null}
                 <Spacing size={8} />
-                <Text>Покажите этот код партнёру для подтверждения привилегии.</Text>
+                <Text>Покажите этот код партнёру.</Text>
+                <Spacing size={12} />
+                <Button stretched onClick={onOpenPrivileges}>Мои привилегии</Button>
               </Div>
             </Card>
           </Div>
         ) : null}
 
-        <Div><Button onClick={onOpenPrivileges}>Мои привилегии</Button></Div>
-        <Div><Button onClick={onBack}>Назад к партнёрам</Button></Div>
+        <Div><Button mode="secondary" onClick={onBack}>Назад к партнёрам</Button></Div>
       </Group>
     </AppShell>
   );
