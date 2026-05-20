@@ -1,4 +1,4 @@
-import { Button, CardGrid, ContentCard, Div, Group } from '@vkontakte/vkui';
+import { Button, Card, CardGrid, Div, Group, Text, Title } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 
 export function PartnerPage({ onBack }: { onBack: () => void }) {
@@ -6,7 +6,14 @@ export function PartnerPage({ onBack }: { onBack: () => void }) {
     <AppShell title="Партнёр">
       <Group>
         <CardGrid size="l">
-          <ContentCard headers="Здесь будет карточка партнёра" text="Партнёр клуба. Данные карточки и условий привилегий будут приходить из backend API." />
+          <Card mode="shadow">
+            <Div>
+              <Title level="2" weight="2" style={{ marginBottom: 8 }}>
+                Карточка партнёра
+              </Title>
+              <Text>Данные партнёра будут загружаться из backend API.</Text>
+            </Div>
+          </Card>
         </CardGrid>
         <Div><Button onClick={onBack}>Назад</Button></Div>
       </Group>
