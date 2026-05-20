@@ -25,6 +25,19 @@ export type ApiSubscription = {
   active?: boolean;
   expires_at?: string | null;
   end_date?: string | null;
+  price?: number | string | null;
+  amount?: number | string | null;
+} & Record<string, unknown>;
+
+export type ApiPaymentRequest = {
+  id?: number | string;
+  status?: string;
+  amount?: number | string | null;
+  price?: number | string | null;
+  created_at?: string | null;
+  payment_url?: string | null;
+  comment?: string | null;
+  message?: string | null;
 } & Record<string, unknown>;
 
 export type ApiVerification = {
@@ -112,7 +125,7 @@ export async function getMe<T = { user?: ApiUser; client?: ApiClient } & Record<
 }
 
 export async function getSubscription<T = ApiSubscription>(): Promise<T> {
-  return apiFetch<T>('/api/v1/subscription');
+  return apiFetch<T>('/api/v1/clients/me/subscription');
 }
 
 export async function getPartners<T = ApiPartner[]>(): Promise<T> {
@@ -125,6 +138,18 @@ export async function getVerifications<T = ApiVerification[]>(): Promise<T> {
 
 export async function createVerification<T = ApiVerification>(partnerId: string): Promise<T> {
   return apiFetch<T>(`/api/v1/clients/partners/${partnerId}/verify`, {
+    method: 'POST',
+  });
+}
+
+export async function createPaymentRequest<T = ApiPaymentRequest>(): Promise<T> {
+  return apiFetch<T>('/api/v1/clients/me/payment-requests', {
+    method: 'POST',
+  });
+}
+
+export async function markPaymentRequestPaid<T = ApiPaymentRequest>(paymentRequestId: string | number): Promise<T> {
+  return apiFetch<T>(`/api/v1/clients/me/payment-requests/${paymentRequestId}/mark-paid`, {
     method: 'POST',
   });
 }
