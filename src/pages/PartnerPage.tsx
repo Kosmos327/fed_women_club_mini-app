@@ -1,6 +1,7 @@
 import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 import type { ApiPartner, ApiVerification } from '../api/client';
+import { formatDateTime, formatVerificationStatus } from '../utils/format';
 
 type PartnerPageProps = {
   selectedPartner: ApiPartner | null;
@@ -88,13 +89,13 @@ export function PartnerPage({
                 {createdVerification.status ? (
                   <>
                     <Spacing size={8} />
-                    <Text>Статус: {String(createdVerification.status)}</Text>
+                    <Text>Статус: {formatVerificationStatus(createdVerification.status)}</Text>
                   </>
                 ) : null}
                 {createdVerification.expires_at ? (
                   <>
                     <Spacing size={8} />
-                    <Text>Действует до: {String(createdVerification.expires_at)}</Text>
+                    <Text>Действует до: {formatDateTime(createdVerification.expires_at)}</Text>
                   </>
                 ) : null}
               </Div>

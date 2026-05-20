@@ -1,6 +1,7 @@
 import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 import type { ApiPaymentRequest, ApiSubscription } from '../api/client';
+import { formatDate, formatDateTime, formatSubscriptionStatus } from '../utils/format';
 
 type Props = {
   onBack: () => void;
@@ -15,10 +16,6 @@ type Props = {
   onMarkPaymentPaid: (paymentRequestId: string | number) => void;
 };
 
-function formatStatus(subscription: ApiSubscription | null): string {
-  const isActive = Boolean(subscription?.is_active ?? subscription?.active);
-  return isActive ? 'Активна' : 'Не активна';
-}
 
 export function SubscriptionPage({
   onBack,
@@ -33,6 +30,8 @@ export function SubscriptionPage({
   onMarkPaymentPaid,
 }: Props) {
   const expiresAt = subscription?.expires_at ?? subscription?.end_date ?? null;
+  const isSubscriptionActive = Boolean(subscription?.is_active ?? subscription?.active);
+  const subscriptionStatus = formatSubscriptionStatus(subscription?.status as string | undefined, isSubscriptionActive);
   const subscriptionPrice = subscription?.price ?? subscription?.amount ?? '349 ₽';
   const paymentId = paymentRequest?.id;
 
@@ -43,9 +42,9 @@ export function SubscriptionPage({
         <Div>
           <Card mode="shadow">
             <Div>
-              <Title level="2" weight="2">Статус: {formatStatus(subscription)}</Title>
+              <Title level="2" weight="2">Статус: {subscriptionStatus}</Title>
               <Spacing size={12} />
-              <Text>Дата окончания: {expiresAt ?? '—'}</Text>
+              <Text>Дата окончания: {formatDate(expiresAt)}</Text>
               <Spacing size={8} />
               <Text>Стоимость: {String(subscriptionPrice)}</Text>
               <Spacing size={16} />
@@ -66,7 +65,9 @@ export function SubscriptionPage({
                 <Spacing size={12} />
                 <Text>Сумма: {String(paymentRequest.amount ?? paymentRequest.price ?? '—')}</Text>
                 <Spacing size={8} />
-                <Text>Статус: {String(paymentRequest.status ?? '—')}</Text>
+                <Text>Статус: {formatSubscriptionStatus(paymentRequest.status)}</Text>
+                <Spacing size={8} />
+                <Text>Создана: {formatDateTime(paymentRequest.created_at)}</Text>
                 {paymentRequest.payment_url ? (
                   <>
                     <Spacing size={12} />
