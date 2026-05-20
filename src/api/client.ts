@@ -3,8 +3,29 @@ const ACCESS_TOKEN_KEY = 'bloomclub_access_token';
 
 let accessToken: string | null = localStorage.getItem(ACCESS_TOKEN_KEY);
 
-export type ApiUser = Record<string, unknown>;
-export type ApiClient = Record<string, unknown>;
+export type ApiUser = {
+  id?: number | string;
+  full_name?: string;
+  name?: string;
+  first_name?: string;
+  email?: string;
+  login?: string;
+} & Record<string, unknown>;
+
+export type ApiClient = {
+  id?: number | string;
+  full_name?: string;
+  city?: string;
+  city_name?: string;
+  custom_city?: string;
+} & Record<string, unknown>;
+
+export type ApiSubscription = {
+  is_active?: boolean;
+  active?: boolean;
+  expires_at?: string | null;
+  end_date?: string | null;
+} & Record<string, unknown>;
 
 export type MiniAppLoginSuccess = {
   access_token: string;
@@ -58,11 +79,11 @@ export async function miniAppLogin(launchParams: string): Promise<MiniAppLoginRe
   });
 }
 
-export async function getMe<T = Record<string, unknown>>(): Promise<T> {
+export async function getMe<T = { user?: ApiUser; client?: ApiClient } & Record<string, unknown>>(): Promise<T> {
   return apiFetch<T>('/api/v1/users/me');
 }
 
-export async function getSubscription<T = Record<string, unknown>>(): Promise<T> {
+export async function getSubscription<T = ApiSubscription>(): Promise<T> {
   return apiFetch<T>('/api/v1/subscription');
 }
 
