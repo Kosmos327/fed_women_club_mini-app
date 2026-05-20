@@ -11,6 +11,7 @@ import {
   createPaymentRequest,
   markPaymentRequestPaid,
   miniAppLogin,
+  updateMe,
   setAccessToken,
   type ApiClient,
   type ApiPaymentRequest,
@@ -18,6 +19,7 @@ import {
   type ApiPartner,
   type ApiUser,
   type ApiVerification,
+  type ApiClientUpdatePayload,
   type MiniAppLoginSuccess,
 } from './api/client';
 import { getRawVkLaunchParams } from './auth/vkLaunchParams';
@@ -58,6 +60,9 @@ export default function App() {
   const [isMarkingPaymentPaid, setIsMarkingPaymentPaid] = useState<boolean>(false);
   const [markPaymentPaidError, setMarkPaymentPaidError] = useState<string>('');
   const [markPaymentPaidSuccessMessage, setMarkPaymentPaidSuccessMessage] = useState<string>('');
+  const [isProfileUpdating, setIsProfileUpdating] = useState<boolean>(false);
+  const [profileUpdateError, setProfileUpdateError] = useState<string>('');
+  const [profileUpdateSuccessMessage, setProfileUpdateSuccessMessage] = useState<string>('');
 
   const noLaunchParamsMessage = 'Откройте приложение внутри VK';
 
@@ -201,6 +206,36 @@ export default function App() {
     }
   };
 
+
+  const openProfilePage = () => {
+    setProfileUpdateError('');
+    setProfileUpdateSuccessMessage('');
+    setPage('profile');
+  };
+
+  const handleUpdateProfile = async (payload: ApiClientUpdatePayload) => {
+    setIsProfileUpdating(true);
+    setProfileUpdateError('');
+    setProfileUpdateSuccessMessage('');
+
+    try {
+      const data = await updateMe(payload);
+
+      if (data?.client) {
+        setClient(data.client);
+      }
+
+      if (data?.user) {
+        setUser(data.user);
+      }
+
+      setProfileUpdateSuccessMessage('Профиль сохранён');
+    } catch {
+      setProfileUpdateError('Не удалось сохранить профиль. Попробуйте ещё раз.');
+    } finally {
+      setIsProfileUpdating(false);
+    }
+  };
   const content = useMemo(() => {
     if (authState === 'loading') return <LoadingState />;
     if (authState === 'join_required') return <JoinViaBotPage />;
@@ -262,7 +297,19 @@ export default function App() {
         />
       );
     }
-    if (page === 'profile') return <ProfilePage onBack={() => setPage('home')} />;
+    if (page === 'profile') {
+      return (
+        <ProfilePage
+          onBack={() => setPage('home')}
+          client={client}
+          user={user}
+          onSave={handleUpdateProfile}
+          isSaving={isProfileUpdating}
+          saveError={profileUpdateError}
+          saveSuccessMessage={profileUpdateSuccessMessage}
+        />
+      );
+    }
 
     return (
       <HomePage
@@ -273,7 +320,7 @@ export default function App() {
         onCatalog={openCatalogPage}
         onPrivileges={openPrivilegesPage}
         onSubscription={openSubscriptionPage}
-        onProfile={() => setPage('profile')}
+        onProfile={openProfilePage}
       />
     );
   }, [
@@ -303,6 +350,9 @@ export default function App() {
     isMarkingPaymentPaid,
     markPaymentPaidError,
     markPaymentPaidSuccessMessage,
+    isProfileUpdating,
+    profileUpdateError,
+    profileUpdateSuccessMessage,
   ]);
 
   return content;
