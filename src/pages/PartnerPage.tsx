@@ -82,7 +82,7 @@ export function PartnerPage({
 
   return (
     <AppShell title="Партнёр">
-      <Group>
+      <Group className="fade-up">
         <Header>Партнёр</Header>
         <Div>
           <Card className="partner-hero" mode="shadow">
@@ -96,7 +96,10 @@ export function PartnerPage({
             <Div>
               <Title level="1" weight="1">{partnerName}</Title>
               {(selectedPartner?.category || partnerCity) ? (
-                <Text className="partner-hero__meta">{[selectedPartner?.category, partnerCity].filter(Boolean).join(' • ')}</Text>
+                <div className="partner-badges">
+                  {selectedPartner?.category ? <span className="bloom-badge">{selectedPartner.category}</span> : null}
+                  {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
+                </div>
               ) : null}
               {selectedPartner?.address ? <Text className="partner-hero__address">{selectedPartner.address}</Text> : null}
               {partnerDescription ? <Text className="partner-hero__description">{partnerDescription}</Text> : null}
@@ -129,7 +132,7 @@ export function PartnerPage({
                     <div className="offer-card__prices">
                       <Text>Цена без скидки: {formatRubles(basePrice)}</Text>
                       <Text>Скидка: {discountPercent != null ? `${discountPercent}%` : '—'}</Text>
-                      <Text weight="2">Цена для участницы: {formatRubles(finalPrice)}</Text>
+                      <Text className="offer-card__member-price" weight="2">Цена для участницы: {formatRubles(finalPrice)}</Text>
                     </div>
 
                     <Spacing size={12} />

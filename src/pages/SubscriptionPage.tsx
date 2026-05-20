@@ -37,7 +37,7 @@ export function SubscriptionPage({
 
   return (
     <AppShell title="Подписка">
-      <Group>
+      <Group className="fade-up">
         <Header>Подписка</Header>
         <Div>
           <Card mode="shadow">

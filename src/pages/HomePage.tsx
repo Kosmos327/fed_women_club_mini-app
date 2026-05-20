@@ -58,14 +58,14 @@ export function HomePage({
 
   return (
     <AppShell title="Мой клуб">
-      <Group>
-        <Div>Привет, {displayName}!</Div>
-        <Div>
+      <Group className="fade-up">
+        <Div><Text weight="2">Привет, {displayName}!</Text></Div>
+        <Div className="bloom-card">
           <Text weight="2">Имя: {displayName}</Text>
           <Spacing size={8} />
           <Text>Город: {displayCity}</Text>
           <Spacing size={8} />
-          <Text>Статус подписки: {subscriptionStatus}</Text>
+          <Text>Статус подписки: <span className={isSubscriptionActive ? "bloom-badge bloom-badge--success" : "bloom-badge"}>{subscriptionStatus}</span></Text>
           {subscriptionExpiresAt ? (
             <>
               <Spacing size={8} />
@@ -73,7 +73,7 @@ export function HomePage({
             </>
           ) : null}
         </Div>
-        <Div>
+        <Div className="bloom-nav-grid">
           <Button stretched size="l" onClick={onCatalog}>Партнёры</Button>
           <Spacing size={12} />
           <Button stretched size="l" mode="secondary" onClick={onPrivileges}>Мои привилегии</Button>
