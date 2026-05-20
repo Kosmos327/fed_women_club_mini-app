@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ErrorState } from './components/ErrorState';
 import { LoadingState } from './components/LoadingState';
-import { clearAccessToken, miniAppLogin, setAccessToken, type MiniAppLoginSuccess } from './api/client';
+import {
+  clearAccessToken,
+  getMe,
+  getSubscription,
+  miniAppLogin,
+  setAccessToken,
+  type ApiClient,
+  type ApiSubscription,
+  type ApiUser,
+  type MiniAppLoginSuccess,
+} from './api/client';
 import { getRawVkLaunchParams } from './auth/vkLaunchParams';
 import { HomePage } from './pages/HomePage';
 import { JoinViaBotPage } from './pages/JoinViaBotPage';
@@ -18,6 +28,9 @@ export default function App() {
   const [authState, setAuthState] = useState<AuthState>('loading');
   const [page, setPage] = useState<Page>('home');
   const [userName, setUserName] = useState<string>('');
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [client, setClient] = useState<ApiClient | null>(null);
+  const [subscription, setSubscription] = useState<ApiSubscription | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   const noLaunchParamsMessage = 'Откройте приложение внутри VK';
@@ -32,7 +45,7 @@ export default function App() {
     }
 
     miniAppLogin(launchParams)
-      .then((response) => {
+      .then(async (response) => {
         if ('status' in response && response.status === 'join_via_bot_required') {
           clearAccessToken();
           setAuthState('join_required');
@@ -41,12 +54,22 @@ export default function App() {
 
         const successResponse = response as MiniAppLoginSuccess;
         setAccessToken(successResponse.access_token);
-        setUserName(String(successResponse.user?.first_name ?? successResponse.user?.name ?? ''));
+
+        const [meData, subscriptionData] = await Promise.all([
+          getMe(),
+          getSubscription(),
+        ]);
+
+        setUser(meData.user ?? successResponse.user ?? null);
+        setClient(meData.client ?? successResponse.client ?? null);
+        setSubscription(subscriptionData ?? null);
+
+        setUserName(String(meData.user?.first_name ?? successResponse.user?.first_name ?? meData.user?.name ?? successResponse.user?.name ?? ''));
         setAuthState('ready');
       })
       .catch(() => {
         clearAccessToken();
-        setErrorMessage('Не удалось авторизоваться. Попробуйте открыть приложение снова из VK.');
+        setErrorMessage('Не удалось загрузить данные клуба. Попробуйте обновить приложение.');
         setAuthState('error');
       });
   }, []);
@@ -66,13 +89,16 @@ export default function App() {
     return (
       <HomePage
         userName={userName}
+        user={user}
+        client={client}
+        subscription={subscription}
         onCatalog={() => setPage('catalog')}
         onPrivileges={() => setPage('privileges')}
         onSubscription={() => setPage('subscription')}
         onProfile={() => setPage('profile')}
       />
     );
-  }, [authState, errorMessage, noLaunchParamsMessage, page, userName]);
+  }, [authState, client, errorMessage, noLaunchParamsMessage, page, subscription, user, userName]);
 
   return content;
 }
