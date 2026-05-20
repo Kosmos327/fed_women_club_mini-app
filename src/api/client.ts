@@ -58,6 +58,13 @@ export type ApiVerification = {
   expires_at?: string | null;
   created_at?: string | null;
   used_at?: string | null;
+  offer_id?: number | string | null;
+  offer_name?: string | null;
+  offer_title?: string | null;
+  service_name?: string | null;
+  service_title?: string | null;
+  offer?: string | Record<string, unknown> | null;
+  service?: string | Record<string, unknown> | null;
 } & Record<string, unknown>;
 
 export type ApiPartner = {
@@ -75,6 +82,24 @@ export type ApiPartner = {
   image_url?: string;
   logo_url?: string;
   is_active?: boolean;
+} & Record<string, unknown>;
+
+export type ApiOffer = {
+  id?: number | string;
+  name?: string;
+  title?: string;
+  short_benefit?: string;
+  description?: string;
+  terms?: string;
+  base_price?: number | string | null;
+  price?: number | string | null;
+  discount_percent?: number | string | null;
+  discount?: number | string | null;
+  final_price?: number | string | null;
+  price_with_discount?: number | string | null;
+  is_active?: boolean;
+  status?: string;
+  sort_order?: number | string | null;
 } & Record<string, unknown>;
 
 
@@ -167,9 +192,17 @@ export async function getVerifications<T = ApiVerification[]>(): Promise<T> {
   return apiFetch<T>('/api/v1/clients/me/verifications');
 }
 
-export async function createVerification<T = ApiVerification>(partnerId: string): Promise<T> {
+export async function getPartnerOffers<T = ApiOffer[]>(partnerId: string): Promise<T> {
+  return apiFetch<T>(`/api/v1/clients/partners/${partnerId}/offers`);
+}
+
+export async function createVerification<T = ApiVerification>(
+  partnerId: string,
+  payload?: { offer_id?: string | number },
+): Promise<T> {
   return apiFetch<T>(`/api/v1/clients/partners/${partnerId}/verify`, {
     method: 'POST',
+    body: payload ? JSON.stringify(payload) : undefined,
   });
 }
 
