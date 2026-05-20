@@ -1,6 +1,7 @@
 import { Button, Div, Group, Spacing, Text } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 import type { ApiClient, ApiSubscription, ApiUser } from '../api/client';
+import { formatDate, formatSubscriptionStatus } from '../utils/format';
 
 type HomePageProps = {
   userName?: string;
@@ -52,7 +53,7 @@ export function HomePage({
   ], 'Город не выбран');
 
   const isSubscriptionActive = Boolean(subscription?.is_active ?? subscription?.active);
-  const subscriptionStatus = isSubscriptionActive ? 'активна' : 'не активна';
+  const subscriptionStatus = formatSubscriptionStatus(subscription?.status as string | undefined, isSubscriptionActive);
   const subscriptionExpiresAt = subscription?.expires_at ?? subscription?.end_date;
 
   return (
@@ -68,7 +69,7 @@ export function HomePage({
           {subscriptionExpiresAt ? (
             <>
               <Spacing size={8} />
-              <Text>Подписка до: {subscriptionExpiresAt}</Text>
+              <Text>Подписка до: {formatDate(subscriptionExpiresAt)}</Text>
             </>
           ) : null}
         </Div>
