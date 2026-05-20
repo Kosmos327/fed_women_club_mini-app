@@ -5,11 +5,11 @@ type AppShellProps = PropsWithChildren<{ title: string }>;
 
 export function AppShell({ title, children }: AppShellProps) {
   return (
-    <AppRoot>
+    <AppRoot className="bloom-app">
       <SplitLayout>
         <SplitCol autoSpaced width="100%" maxWidth="560px">
           <View activePanel="main">
-            <Panel id="main">
+            <Panel id="main" className="bloom-content">
               <PanelHeader>{title}</PanelHeader>
               {children}
             </Panel>

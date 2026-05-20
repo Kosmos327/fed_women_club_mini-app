@@ -12,7 +12,7 @@ type PrivilegesPageProps = {
 export function PrivilegesPage({ onBack, verifications }: PrivilegesPageProps) {
   return (
     <AppShell title="Мои привилегии">
-      <Group>
+      <Group className="fade-up">
         <Header>Мои привилегии</Header>
         {verifications.length === 0 ? (
           <EmptyState header="Пока пусто" description="У вас пока нет активных привилегий" />

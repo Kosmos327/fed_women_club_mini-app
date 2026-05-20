@@ -79,7 +79,7 @@ export function ProfilePage({
 
   return (
     <AppShell title="Профиль">
-      <Group>
+      <Group className="fade-up">
         <Header>Данные участницы</Header>
         <Card mode="shadow">
           <Div>

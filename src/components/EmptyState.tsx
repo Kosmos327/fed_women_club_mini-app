@@ -7,8 +7,8 @@ type EmptyStateProps = {
 
 export function EmptyState({ header, description }: EmptyStateProps) {
   return (
-    <Group>
-      <Placeholder>
+    <Group className="fade-up">
+      <Placeholder className="bloom-card">
         <strong>{header}</strong>
         <br />
         {description}

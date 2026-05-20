@@ -25,7 +25,7 @@ const resolvePartnerImage = (partner: ApiPartner): string | null => {
 export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
   return (
     <AppShell title="Партнёры">
-      <Group>
+      <Group className="fade-up">
         <Header>Партнёры</Header>
         {partners.length === 0 ? (
           <EmptyState header="Партнёров пока нет" description="В вашем городе пока нет партнёров" />
@@ -50,10 +50,11 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                   )}
                   <Div>
                     <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
-                    {(partner.category || partnerCity) ? (
-                      <Text className="partner-card__meta">{[partner.category, partnerCity].filter(Boolean).join(' • ')}</Text>
-                    ) : null}
-                    {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}
+                    <div className="partner-badges">
+                      {partner.category ? <span className="bloom-badge">{partner.category}</span> : null}
+                      {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
+                    </div>
+                                        {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}
                     {partnerDescription ? <Text className="partner-card__description">{partnerDescription}</Text> : null}
                     {partnerBenefit ? <Text className="partner-card__benefit">{partnerBenefit}</Text> : null}
                     <Spacing size={12} />
