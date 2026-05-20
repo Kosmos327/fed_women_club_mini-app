@@ -1,42 +1,26 @@
-# Bloom Club — VK Mini App Frontend (MVP Skeleton)
+# Bloom Club — VK Mini App Frontend
 
-Это frontend-репозиторий VK Mini App для проекта Bloom Club / Женский клуб.
+Frontend-часть VK Mini App для проекта Bloom Club / Женский клуб. Приложение запускается внутри VK, получает launch params и авторизует пользователя через backend.
 
-- VK App: https://vk.com/app54600832
-- VK_APP_ID: `54600832`
-- Backend (отдельный репозиторий): `Kosmos327/fed_women_club_WEB`
+## Что делает проект
 
-## Что реализовано
-
-- React + TypeScript + Vite skeleton для VK Mini App.
-- Базовая интеграция с backend login endpoint:
+- Отображает интерфейс мини-приложения на React + TypeScript + VKUI.
+- Передаёт launch params на backend для входа.
+- Работает с backend login endpoint:
   - `POST /api/v1/auth/vk-miniapp-login`
-- Получение raw launch params из `window.location.search`.
-- Состояния приложения:
-  - загрузка,
-  - успешный вход,
-  - `join_via_bot_required`,
-  - отсутствие launch params,
-  - ошибка авторизации.
-- Базовые страницы-заглушки в VKUI-стиле.
 
 ## Локальный запуск
 
-1. Установите зависимости:
-
 ```bash
 npm install
-```
-
-2. Создайте `.env` на основе `.env.example`.
-
-3. Запустите dev сервер:
-
-```bash
+npm run typecheck
+npm run build
 npm run dev
 ```
 
 ## ENV переменные
+
+Создайте `.env` (например, на основе `.env.example`) и укажите:
 
 ```env
 VITE_API_BASE_URL=https://bloomclub.ru
@@ -44,30 +28,11 @@ VITE_VK_APP_ID=54600832
 VITE_VK_BOT_URL=https://vk.com/club_or_bot_link_here
 ```
 
-- `VITE_API_BASE_URL` используется для запросов к backend API.
-- `VITE_VK_BOT_URL` используется в JoinViaBotPage.
+- `VITE_API_BASE_URL` — базовый URL backend API.
+- `VITE_VK_APP_ID` — ID VK Mini App.
+- `VITE_VK_BOT_URL` — ссылка на бота/сообщество для сценария join via bot.
 
 ## Безопасность
 
-`VK_APP_SECRET` **не должен** попадать во frontend и не используется в этом репозитории.
-Проверка подписи launch params должна происходить только на backend.
-
-## Build
-
-Production build:
-
-```bash
-npm run build
-```
-
-Preview production build:
-
-```bash
-npm run preview
-```
-
-Type checking:
-
-```bash
-npm run typecheck
-```
+`VK_APP_SECRET` запрещён во frontend и не должен храниться в этом репозитории или в клиентских env.
+Проверка подписи launch params должна выполняться только на backend.
