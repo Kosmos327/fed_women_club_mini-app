@@ -58,3 +58,15 @@ export function formatVerificationStatus(status?: string | null): string {
 
   return status?.trim() || '—';
 }
+
+export function formatMoney(value: string | number | null | undefined, suffix = '₽'): string {
+  if (value == null) return `— ${suffix}`;
+
+  const normalized = typeof value === 'number'
+    ? value
+    : Number(String(value).replace(',', '.').replace(/\s+/g, ''));
+
+  if (!Number.isFinite(normalized)) return `— ${suffix}`;
+
+  return `${Math.round(normalized).toLocaleString('ru-RU')} ${suffix}`;
+}
