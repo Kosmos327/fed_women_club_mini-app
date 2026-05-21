@@ -40,15 +40,15 @@ export function SubscriptionPage({
       <Group className="fade-up">
         <Header>Подписка</Header>
         <Div>
-          <Card mode="shadow">
+          <Card mode="shadow" className="subscription-card">
             <Div>
-              <Title level="2" weight="2">Статус: {subscriptionStatus}</Title>
+              <Title level="2" weight="2">Подписка <span className={isSubscriptionActive ? "bloom-badge bloom-badge--success" : "bloom-badge"}>{subscriptionStatus}</span></Title>
               <Spacing size={12} />
               <Text>Дата окончания: {formatDate(expiresAt)}</Text>
               <Spacing size={8} />
-              <Text>Стоимость: {String(subscriptionPrice)}</Text>
+              <Text className="subscription-card__price">{String(subscriptionPrice)}</Text>
               <Spacing size={16} />
-              <Button size="l" stretched onClick={onCreatePaymentRequest} loading={isCreatingPaymentRequest}>
+              <Button className="bloom-button-primary" size="l" stretched onClick={onCreatePaymentRequest} loading={isCreatingPaymentRequest}>
                 Оформить / Продлить
               </Button>
             </Div>
@@ -71,7 +71,7 @@ export function SubscriptionPage({
                 {paymentRequest.payment_url ? (
                   <>
                     <Spacing size={12} />
-                    <Button size="m" stretched href={String(paymentRequest.payment_url)} target="_blank">
+                    <Button className="bloom-button-primary" size="m" stretched href={String(paymentRequest.payment_url)} target="_blank">
                       Оплатить
                     </Button>
                   </>
@@ -80,7 +80,7 @@ export function SubscriptionPage({
                   <>
                     <Spacing size={12} />
                     <Button
-                      size="m"
+                      className="bloom-button-secondary" size="m"
                       stretched
                       mode="secondary"
                       onClick={() => onMarkPaymentPaid(paymentId)}
@@ -98,7 +98,7 @@ export function SubscriptionPage({
         {markPaymentPaidError ? <Div><Text>{markPaymentPaidError}</Text></Div> : null}
         {markPaymentPaidSuccessMessage ? <Div><Text>{markPaymentPaidSuccessMessage}</Text></Div> : null}
 
-        <Div><Button onClick={onBack}>На главную</Button></Div>
+        <Div><Button className="bloom-button-secondary" mode="secondary" onClick={onBack}>На главную</Button></Div>
       </Group>
     </AppShell>
   );

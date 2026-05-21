@@ -2,6 +2,7 @@ import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontak
 import { AppShell } from '../components/AppShell';
 import type { ApiOffer, ApiPartner, ApiVerification } from '../api/client';
 import { formatDateTime, formatVerificationStatus } from '../utils/format';
+import { ImageWithFallback } from '../components/ImageWithFallback';
 
 type PartnerPageProps = {
   selectedPartner: ApiPartner | null;
@@ -86,13 +87,14 @@ export function PartnerPage({
         <Header>Партнёр</Header>
         <Div>
           <Card className="partner-hero" mode="shadow">
-            {partnerImage ? (
-              <img className="partner-hero__image" src={partnerImage} alt={partnerName} />
-            ) : (
-              <div className="partner-hero__placeholder">
-                <Text weight="2">{selectedPartner?.category ?? 'Партнёр клуба'}</Text>
-              </div>
-            )}
+            <ImageWithFallback
+              src={partnerImage}
+              alt={partnerName}
+              className="partner-hero__image"
+              placeholderClassName="partner-hero__placeholder"
+              placeholderLabel={selectedPartner?.category ?? 'Партнёр клуба'}
+              compact
+            />
             <Div>
               <Title level="1" weight="1">{partnerName}</Title>
               {(selectedPartner?.category || partnerCity) ? (
@@ -125,18 +127,19 @@ export function PartnerPage({
                 <Card className="offer-card" mode="shadow">
                   <Div>
                     <Title className="offer-card__title" level="2" weight="2">{offerName}</Title>
-                    {discountPercent != null ? <Text className="offer-card__badge">Скидка {discountPercent}%</Text> : null}
+                    {discountPercent != null ? <span className="offer-card__badge">Скидка {discountPercent}%</span> : null}
                     {offerDescription ? <Text className="offer-card__description">{offerDescription}</Text> : null}
                     {offer.terms ? <Text className="offer-card__terms">Условия: {String(offer.terms)}</Text> : null}
 
                     <div className="offer-card__prices">
                       <Text>Цена без скидки: {formatRubles(basePrice)}</Text>
                       <Text>Скидка: {discountPercent != null ? `${discountPercent}%` : '—'}</Text>
-                      <Text className="offer-card__member-price" weight="2">Цена для участницы: {formatRubles(finalPrice)}</Text>
+                      <Text className="offer-card__member-price" weight="2">Цена для участницы: <strong>{formatRubles(finalPrice)}</strong></Text>
                     </div>
 
                     <Spacing size={12} />
                     <Button
+                      className="bloom-button-primary"
                       size="l"
                       stretched
                       onClick={() => onCreateVerification(partnerId, offerId)}
@@ -176,7 +179,7 @@ export function PartnerPage({
                 {createdVerification.status ? (
                   <>
                     <Spacing size={8} />
-                    <Text>Статус: {formatVerificationStatus(createdVerification.status)}</Text>
+                    <Text>Статус: <span className="bloom-badge bloom-badge--success">{formatVerificationStatus(createdVerification.status)}</span></Text>
                   </>
                 ) : null}
                 {createdVerification.expires_at ? (
@@ -188,13 +191,13 @@ export function PartnerPage({
                 <Spacing size={8} />
                 <Text>Покажите этот код партнёру.</Text>
                 <Spacing size={12} />
-                <Button stretched onClick={onOpenPrivileges}>Мои привилегии</Button>
+                <Button className="bloom-button-secondary" stretched onClick={onOpenPrivileges}>Мои привилегии</Button>
               </Div>
             </Card>
           </Div>
         ) : null}
 
-        <Div><Button mode="secondary" onClick={onBack}>Назад к партнёрам</Button></Div>
+        <Div><Button className="bloom-button-muted" mode="secondary" onClick={onBack}>Назад к партнёрам</Button></Div>
       </Group>
     </AppShell>
   );

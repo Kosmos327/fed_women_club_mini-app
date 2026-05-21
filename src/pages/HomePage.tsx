@@ -74,13 +74,13 @@ export function HomePage({
           ) : null}
         </Div>
         <Div className="bloom-nav-grid">
-          <Button stretched size="l" onClick={onCatalog}>Партнёры</Button>
+          <Button className="bloom-button-primary" stretched size="l" onClick={onCatalog}>Партнёры</Button>
           <Spacing size={12} />
-          <Button stretched size="l" mode="secondary" onClick={onPrivileges}>Мои привилегии</Button>
+          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onPrivileges}>Мои привилегии</Button>
           <Spacing size={12} />
-          <Button stretched size="l" mode="secondary" onClick={onSubscription}>Подписка</Button>
+          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onSubscription}>Подписка</Button>
           <Spacing size={12} />
-          <Button stretched size="l" mode="secondary" onClick={onProfile}>Профиль</Button>
+          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onProfile}>Профиль</Button>
         </Div>
       </Group>
     </AppShell>
