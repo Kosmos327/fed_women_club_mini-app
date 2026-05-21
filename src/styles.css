@@ -111,10 +111,10 @@ body {
 .partner-hero__image {
   display: block;
   width: 100%;
-  height: 240px;
-  object-fit: cover;
-  object-position: center top;
-  background: #f4f6fa;
+  height: 260px;
+  object-fit: contain;
+  object-position: center center;
+  background: rgba(255, 255, 255, 0.45);
 }
 
 .partner-card__placeholder,
@@ -123,7 +123,7 @@ body {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 240px;
+  height: 260px;
   padding: 12px;
   text-align: center;
   color: var(--bloom-muted);
@@ -253,10 +253,25 @@ body {
 }
 
 .partner-card__image,
-.partner-card__placeholder { height: 220px; }
+.partner-card__placeholder { min-height: 220px; }
 
 .partner-hero__image,
-.partner-hero__placeholder { height: 260px; }
+.partner-hero__placeholder { min-height: 280px; }
+
+.glass-panel {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 24px rgba(123, 73, 68, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-panel.vkuiHeader,
+.glass-panel .vkuiHeader__content,
+.catalog-filters.glass-panel {
+  padding: 12px 14px;
+}
 
 .partner-gallery { position: relative; }
 .partner-gallery__nav {
@@ -320,5 +335,5 @@ body {
   .partner-hero__image,
   .partner-hero__placeholder,
   .partner-card__image,
-  .partner-card__placeholder { height: 180px; }
+  .partner-card__placeholder { min-height: 180px; }
 }

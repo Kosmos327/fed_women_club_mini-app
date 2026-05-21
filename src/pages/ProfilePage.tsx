@@ -80,12 +80,12 @@ export function ProfilePage({
   return (
     <AppShell title="Профиль">
       <Group className="fade-up">
-        <Header>Данные участницы</Header>
-        <Card mode="shadow" className="profile-card">
+        <Header className="glass-panel">Данные участницы</Header>
+        <Card mode="shadow" className="profile-card glass-panel">
           <Div>
             <Title level="2" weight="2">Редактирование профиля</Title>
             <Spacing size={8} />
-            <Text>Заполните или обновите контактные данные.</Text>
+            <Text className="state-note">Заполните или обновите контактные данные.</Text>
           </Div>
 
           <FormItem top="Имя">
@@ -102,7 +102,7 @@ export function ProfilePage({
 
           <FormItem top="Город">
             {isCitiesLoading ? (
-              <Text>Загрузка городов...</Text>
+              <Text className="state-note">Загрузка городов...</Text>
             ) : (
               <Select
                 placeholder="Выберите город"
@@ -121,11 +121,11 @@ export function ProfilePage({
           </FormItem>
 
           {!isCitiesLoading && cities.length === 0 && !citiesError && (
-            <Div><Text>Пока нет доступных городов</Text></Div>
+            <Div className="glass-panel"><Text className="state-note">Пока нет доступных городов</Text></Div>
           )}
-          {!!citiesError && <Div><Text>{citiesError}</Text></Div>}
-          {!!saveError && <Div><Text>{saveError}</Text></Div>}
-          {!!saveSuccessMessage && <Div><Text>{saveSuccessMessage}</Text></Div>}
+          {!!citiesError && <Div className="glass-panel"><Text className="state-note">{citiesError}</Text></Div>}
+          {!!saveError && <Div className="glass-panel"><Text className="state-note">{saveError}</Text></Div>}
+          {!!saveSuccessMessage && <Div className="glass-panel"><Text className="state-note">{saveSuccessMessage}</Text></Div>}
 
           <Div>
             <Button className="bloom-button-primary" size="l" stretched onClick={handleSubmit} loading={isSaving} disabled={isSaving}>

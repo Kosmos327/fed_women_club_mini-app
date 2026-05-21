@@ -59,8 +59,8 @@ export function HomePage({
   return (
     <AppShell title="Мой клуб">
       <Group className="fade-up">
-        <Div><Text weight="2">Привет, {displayName}!</Text></Div>
-        <Div className="bloom-card">
+        <Div className="glass-panel"><Text weight="2">Привет, {displayName}!</Text></Div>
+        <Div className="bloom-card glass-panel">
           <Text weight="2">Имя: {displayName}</Text>
           <Spacing size={8} />
           <Text>Город: {displayCity}</Text>
