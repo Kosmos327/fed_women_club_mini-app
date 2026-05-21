@@ -70,6 +70,14 @@ export function PartnerPage({
   const partnerCity = selectedPartner?.city_name ?? selectedPartner?.city;
   const partnerImage = getPartnerImageSrc(selectedPartner);
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
+  if (import.meta.env.DEV && selectedPartner) {
+    console.debug('Partner page image resolution', {
+      partnerId: selectedPartner.id,
+      partnerName,
+      partnerKeys: Object.keys(selectedPartner),
+      resolvedImage: partnerImage,
+    });
+  }
 
   return (
     <AppShell title="Партнёр">

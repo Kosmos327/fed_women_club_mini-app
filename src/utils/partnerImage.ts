@@ -12,14 +12,15 @@ const toMediaUrl = (value: unknown): string | null => {
   const raw = toNonEmptyString(value);
   if (!raw) return null;
   if (ABSOLUTE_URL_REGEX.test(raw) || raw.startsWith('data:image/')) return raw;
-  if (!raw.startsWith('/')) return null;
 
   const baseUrl = toNonEmptyString(import.meta.env.VITE_API_BASE_URL);
-  if (!baseUrl) return raw;
+  if (!baseUrl) {
+    return raw.startsWith('/') ? raw : `/${raw}`;
+  }
 
   try {
     const apiOrigin = new URL(baseUrl).origin;
-    return new URL(raw, apiOrigin).toString();
+    return new URL(raw, `${apiOrigin}/`).toString();
   } catch {
     return raw;
   }
