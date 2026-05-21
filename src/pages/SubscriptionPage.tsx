@@ -38,9 +38,9 @@ export function SubscriptionPage({
   return (
     <AppShell title="Подписка">
       <Group className="fade-up">
-        <Header>Подписка</Header>
+        <Header className="glass-panel">Подписка</Header>
         <Div>
-          <Card mode="shadow" className="subscription-card">
+          <Card mode="shadow" className="subscription-card glass-panel">
             <Div>
               <Title level="2" weight="2">Подписка <span className={isSubscriptionActive ? "bloom-badge bloom-badge--success" : "bloom-badge"}>{subscriptionStatus}</span></Title>
               <Spacing size={12} />
@@ -55,11 +55,11 @@ export function SubscriptionPage({
           </Card>
         </Div>
 
-        {createPaymentRequestError ? <Div><Text>{createPaymentRequestError}</Text></Div> : null}
+        {createPaymentRequestError ? <Div className="glass-panel"><Text className="state-note">{createPaymentRequestError}</Text></Div> : null}
 
         {paymentRequest ? (
           <Div>
-            <Card mode="shadow">
+            <Card mode="shadow" className="glass-panel">
               <Div>
                 <Title level="3" weight="2">Заявка на оплату создана</Title>
                 <Spacing size={12} />
@@ -95,8 +95,8 @@ export function SubscriptionPage({
           </Div>
         ) : null}
 
-        {markPaymentPaidError ? <Div><Text>{markPaymentPaidError}</Text></Div> : null}
-        {markPaymentPaidSuccessMessage ? <Div><Text>{markPaymentPaidSuccessMessage}</Text></Div> : null}
+        {markPaymentPaidError ? <Div className="glass-panel"><Text className="state-note">{markPaymentPaidError}</Text></Div> : null}
+        {markPaymentPaidSuccessMessage ? <Div className="glass-panel"><Text className="state-note">{markPaymentPaidSuccessMessage}</Text></Div> : null}
 
         <Div><Button className="bloom-button-secondary" mode="secondary" onClick={onBack}>На главную</Button></Div>
       </Group>

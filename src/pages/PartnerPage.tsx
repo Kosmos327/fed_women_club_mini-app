@@ -82,9 +82,9 @@ export function PartnerPage({
   return (
     <AppShell title="Партнёр">
       <Group className="fade-up">
-        <Header>Партнёр</Header>
+        <Header className="glass-panel">Партнёр</Header>
         <Div>
-          <Card className="partner-hero" mode="shadow">
+          <Card className="partner-hero glass-panel" mode="shadow">
             <PartnerPhotoGallery
               images={partnerImages}
               alt={partnerName}
@@ -94,9 +94,10 @@ export function PartnerPage({
             />
             <Div>
               <Title level="1" weight="1">{partnerName}</Title>
-              {(selectedPartner?.category || partnerCity) ? (
+              {(selectedPartner?.category || selectedPartner?.category_name || selectedPartner?.service_category || selectedPartner?.type || partnerCity) ? (
                 <div className="partner-badges">
-                  {selectedPartner?.category ? <span className="bloom-badge">{selectedPartner.category}</span> : null}
+                  {(selectedPartner?.category ?? selectedPartner?.category_name ?? selectedPartner?.service_category ?? selectedPartner?.type)
+                    ? <span className="bloom-badge">{String(selectedPartner?.category ?? selectedPartner?.category_name ?? selectedPartner?.service_category ?? selectedPartner?.type)}</span> : null}
                   {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
                 </div>
               ) : null}
@@ -107,7 +108,7 @@ export function PartnerPage({
           </Card>
         </Div>
 
-        <Header>Услуги и привилегии</Header>
+        <Header className="glass-panel">Услуги и привилегии</Header>
         {isOffersLoading ? <Div><Text className="state-note">Загружаем услуги…</Text></Div> : null}
         {!isOffersLoading && offersError ? <Div><Text className="state-note state-note--error">Не удалось загрузить услуги партнёра</Text></Div> : null}
         {!isOffersLoading && !offersError && offers.length === 0 ? <Div><Text className="state-note">У партнёра пока нет активных услуг</Text></Div> : null}

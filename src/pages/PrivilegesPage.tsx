@@ -13,7 +13,7 @@ export function PrivilegesPage({ onBack, verifications }: PrivilegesPageProps) {
   return (
     <AppShell title="Мои привилегии">
       <Group className="fade-up">
-        <Header>Мои привилегии</Header>
+        <Header className="glass-panel">Мои привилегии</Header>
         {verifications.length === 0 ? (
           <EmptyState header="Пока пусто" description="У вас пока нет активных привилегий" />
         ) : (
@@ -24,7 +24,7 @@ export function PrivilegesPage({ onBack, verifications }: PrivilegesPageProps) {
               const usedAt = formatDateTime(item.used_at);
 
               return (
-                <Card className={`privilege-card ${String(item.status).toLowerCase().includes("expire") ? "privilege-card--expired" : "privilege-card--active"}`} key={String(item.id ?? item.code ?? index)}>
+            <Card className={`privilege-card glass-panel ${String(item.status).toLowerCase().includes("expire") ? "privilege-card--expired" : "privilege-card--active"}`} key={String(item.id ?? item.code ?? index)}>
                   <Div>
                     {item.code ? <Title className="privilege-card__code" level="2">{item.code}</Title> : null}
                     {partnerLabel ? <Text>Партнёр: {partnerLabel}</Text> : null}

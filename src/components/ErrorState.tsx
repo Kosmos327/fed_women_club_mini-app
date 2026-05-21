@@ -5,7 +5,7 @@ type ErrorStateProps = { message: string };
 export function ErrorState({ message }: ErrorStateProps) {
   return (
     <Group>
-      <Placeholder>
+      <Placeholder className="glass-panel">
         <strong>Ошибка входа</strong>
         <br />
         {message}

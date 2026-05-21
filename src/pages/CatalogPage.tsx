@@ -15,34 +15,55 @@ type CatalogPageProps = {
 
 export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
   const [activeCategory, setActiveCategory] = useState('Все');
-  const resolveCategory = (partner: ApiPartner): string | null => {
+  const getPartnerCategoryName = (partner: ApiPartner): string | null => {
+    const categoryObject = partner.category && typeof partner.category === 'object'
+      ? (partner.category as Record<string, unknown>)
+      : null;
     const value =
-      (partner.category && typeof partner.category === 'object'
-        ? ((partner.category as Record<string, unknown>).name ?? (partner.category as Record<string, unknown>).title)
-        : partner.category) ??
+      (typeof partner.category === 'string' ? partner.category : null) ??
+      (typeof categoryObject?.name === 'string' ? categoryObject.name : null) ??
+      (typeof categoryObject?.title === 'string' ? categoryObject.title : null) ??
+      (typeof categoryObject?.slug === 'string' ? categoryObject.slug : null) ??
       partner.category_name ??
-      partner.type ??
-      partner.service_category;
+      partner.service_category ??
+      partner.type;
     return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
   };
   const categories = useMemo(
-    () => ['Все', ...Array.from(new Set(partners.map(resolveCategory).filter((value): value is string => Boolean(value))))],
+    () => ['Все', ...Array.from(new Set(partners.map(getPartnerCategoryName).filter((value): value is string => Boolean(value))))],
     [partners],
   );
   const filteredPartners = useMemo(
-    () => (activeCategory === 'Все' ? partners : partners.filter((partner) => resolveCategory(partner) === activeCategory)),
+    () => (activeCategory === 'Все' ? partners : partners.filter((partner) => getPartnerCategoryName(partner) === activeCategory)),
     [activeCategory, partners],
   );
+
+  if (import.meta.env.DEV) {
+    const firstPartner = partners[0];
+    console.debug('Catalog category diagnostics', {
+      partnersCount: partners.length,
+      firstPartnerKeys: firstPartner ? Object.keys(firstPartner) : [],
+      firstPartnerCategoryFields: firstPartner
+        ? {
+            category: firstPartner.category,
+            category_name: firstPartner.category_name,
+            type: firstPartner.type,
+            service_category: firstPartner.service_category,
+          }
+        : null,
+      computedCategories: categories,
+    });
+  }
 
   return (
     <AppShell title="Партнёры">
       <Group className="fade-up">
-        <Header>Партнёры</Header>
+        <Header className="glass-panel">Партнёры</Header>
         {partners.length === 0 ? (
           <EmptyState header="Партнёров пока нет" description="В вашем городе пока нет партнёров" />
         ) : (
           <>
-            <Div className="catalog-filters">
+            <Div className="catalog-filters glass-panel">
               {categories.map((category) => (
                 <button
                   key={category}
@@ -62,7 +83,7 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
               const partnerDescription = partner.description ?? partner.short_description;
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
-              const categoryLabel = resolveCategory(partner) ?? 'Без категории';
+              const categoryLabel = getPartnerCategoryName(partner) ?? 'Без категории';
               if (import.meta.env.DEV) {
                 console.debug('Catalog partner image resolution', {
                   partnerId: partner.id,
@@ -84,7 +105,7 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                   <Div>
                     <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
                     <div className="partner-badges">
-                      {resolveCategory(partner) ? <span className="bloom-badge">{resolveCategory(partner)}</span> : null}
+                      {getPartnerCategoryName(partner) ? <span className="bloom-badge">{getPartnerCategoryName(partner)}</span> : null}
                       {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
                     </div>
                     {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}
