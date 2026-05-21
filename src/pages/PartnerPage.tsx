@@ -93,22 +93,26 @@ export function PartnerPage({
         <Div>
           <Card className="partner-hero glass-panel" mode="shadow">
             <div className="partner-hero__media">
-              <button
-                type="button"
-                className="partner-hero__media-button"
-                onClick={() => setIsPartnerGalleryOpen(true)}
-                aria-label="Открыть галерею партнёра"
-              >
-                <ImageWithFallback
-                  src={partnerImages[0] ?? null}
-                  alt={partnerName}
-                  className="partner-hero__image"
-                  placeholderClassName="partner-hero__placeholder"
-                  placeholderLabel={partnerCategory ?? 'Партнёр клуба'}
-                />
-                {partnerImages.length > 1 ? <span className="partner-hero__media-badge">{partnerImages.length} фото</span> : null}
-                <span className="partner-hero__media-cta">Смотреть фото</span>
-              </button>
+              <ImageWithFallback
+                src={partnerImages[0] ?? null}
+                alt={partnerName}
+                className="partner-hero__image"
+                placeholderClassName="partner-hero__placeholder"
+                placeholderLabel={partnerCategory ?? 'Партнёр клуба'}
+              />
+              {partnerImages.length > 0 ? (
+                <Button
+                  type="button"
+                  className="bloom-button-secondary partner-hero__gallery-button"
+                  mode="secondary"
+                  size="l"
+                  stretched
+                  onClick={() => setIsPartnerGalleryOpen(true)}
+                  aria-label="Открыть галерею партнёра"
+                >
+                  {partnerImages.length > 1 ? `Посмотреть галерею · ${partnerImages.length} фото` : 'Посмотреть фото'}
+                </Button>
+              ) : null}
             </div>
             <Div>
               <Title level="1" weight="1">{partnerName}</Title>

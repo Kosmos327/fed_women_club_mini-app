@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type TouchEventHandler } from 'react';
 
 type PhotoGalleryModalProps = {
   title: string;
@@ -10,6 +10,9 @@ type PhotoGalleryModalProps = {
 export function PhotoGalleryModal({ title, images, initialIndex = 0, onClose }: PhotoGalleryModalProps) {
   const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const touchCurrentRef = useRef<{ x: number; y: number } | null>(null);
+  const SWIPE_THRESHOLD = 50;
 
   const safeImages = useMemo(() => images.filter((src) => !brokenImages.has(src)), [images, brokenImages]);
 
@@ -48,6 +51,45 @@ export function PhotoGalleryModal({ title, images, initialIndex = 0, onClose }: 
   const currentImage = safeImages[currentIndex] ?? safeImages[0];
   const hasMany = safeImages.length > 1;
 
+  const goPrev = () => setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length);
+  const goNext = () => setCurrentIndex((prev) => (prev + 1) % safeImages.length);
+
+  const onTouchStart: TouchEventHandler<HTMLDivElement> = (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    touchCurrentRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const onTouchMove: TouchEventHandler<HTMLDivElement> = (event) => {
+    const touch = event.touches[0];
+    if (!touch || !touchStartRef.current) return;
+    touchCurrentRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const onTouchEnd = () => {
+    if (!hasMany || !touchStartRef.current || !touchCurrentRef.current) {
+      touchStartRef.current = null;
+      touchCurrentRef.current = null;
+      return;
+    }
+
+    const deltaX = touchCurrentRef.current.x - touchStartRef.current.x;
+    const deltaY = touchCurrentRef.current.y - touchStartRef.current.y;
+
+    if (Math.abs(deltaY) > Math.abs(deltaX) || Math.abs(deltaX) < SWIPE_THRESHOLD) {
+      touchStartRef.current = null;
+      touchCurrentRef.current = null;
+      return;
+    }
+
+    if (deltaX < 0) goNext();
+    else goPrev();
+
+    touchStartRef.current = null;
+    touchCurrentRef.current = null;
+  };
+
   return (
     <div className="gallery-modal-overlay" onClick={onClose} role="presentation">
       <div className="gallery-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
@@ -55,7 +97,7 @@ export function PhotoGalleryModal({ title, images, initialIndex = 0, onClose }: 
           <div className="gallery-modal__counter">{title} · {currentIndex + 1} / {safeImages.length}</div>
           <button type="button" className="gallery-modal__close" onClick={onClose} aria-label="Закрыть галерею">✕</button>
         </div>
-        <div className="gallery-modal__media">
+        <div className="gallery-modal__media" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
           <div className="gallery-modal__bg" style={{ backgroundImage: `url(${currentImage})` }} aria-hidden="true" />
           <img
             src={currentImage}
@@ -69,8 +111,8 @@ export function PhotoGalleryModal({ title, images, initialIndex = 0, onClose }: 
           />
           {hasMany ? (
             <>
-              <button type="button" className="gallery-modal__nav gallery-modal__nav--prev" onClick={() => setCurrentIndex((prev) => (prev - 1 + safeImages.length) % safeImages.length)} aria-label="Предыдущее фото">‹</button>
-              <button type="button" className="gallery-modal__nav gallery-modal__nav--next" onClick={() => setCurrentIndex((prev) => (prev + 1) % safeImages.length)} aria-label="Следующее фото">›</button>
+              <button type="button" className="gallery-modal__nav gallery-modal__nav--prev" onClick={goPrev} aria-label="Предыдущее фото">‹</button>
+              <button type="button" className="gallery-modal__nav gallery-modal__nav--next" onClick={goNext} aria-label="Следующее фото">›</button>
             </>
           ) : null}
         </div>
