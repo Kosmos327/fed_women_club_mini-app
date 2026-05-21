@@ -57,9 +57,8 @@ export function HomePage({
   const subscriptionExpiresAt = subscription?.expires_at ?? subscription?.end_date;
 
   return (
-    <AppShell title="Мой клуб" titleClassName="bloom-panel-header-title-compact">
+    <AppShell title="Мой клуб" titleClassName="bloom-panel-header-title-glass">
       <Group className="fade-up">
-        <Div className="bloom-page-title-card">Мой клуб</Div>
         <Div className="glass-panel"><Text weight="2">Привет, {displayName}!</Text></Div>
         <Div className="bloom-card glass-panel">
           <Text weight="2">Имя: {displayName}</Text>
