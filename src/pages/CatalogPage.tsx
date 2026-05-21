@@ -5,6 +5,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getPartnerImageSrc } from '../utils/partnerImage';
 import type { ApiPartner } from '../api/client';
+import { getPartnerCategoryName } from '../utils/format';
 
 type CatalogPageProps = {
   partners: ApiPartner[];
@@ -15,20 +16,6 @@ type CatalogPageProps = {
 
 export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
   const [activeCategory, setActiveCategory] = useState('Все');
-  const getPartnerCategoryName = (partner: ApiPartner): string | null => {
-    const categoryObject = partner.category && typeof partner.category === 'object'
-      ? (partner.category as Record<string, unknown>)
-      : null;
-    const value =
-      (typeof partner.category === 'string' ? partner.category : null) ??
-      (typeof categoryObject?.name === 'string' ? categoryObject.name : null) ??
-      (typeof categoryObject?.title === 'string' ? categoryObject.title : null) ??
-      (typeof categoryObject?.slug === 'string' ? categoryObject.slug : null) ??
-      partner.category_name ??
-      partner.service_category ??
-      partner.type;
-    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
-  };
   const categories = useMemo(
     () => ['Все', ...Array.from(new Set(partners.map(getPartnerCategoryName).filter((value): value is string => Boolean(value))))],
     [partners],
@@ -83,7 +70,8 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
               const partnerDescription = partner.description ?? partner.short_description;
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
-              const categoryLabel = getPartnerCategoryName(partner) ?? 'Без категории';
+              const normalizedCategory = getPartnerCategoryName(partner);
+              const categoryLabel = normalizedCategory ?? 'Без категории';
               if (import.meta.env.DEV) {
                 console.debug('Catalog partner image resolution', {
                   partnerId: partner.id,
@@ -105,7 +93,7 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                   <Div>
                     <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
                     <div className="partner-badges">
-                      {getPartnerCategoryName(partner) ? <span className="bloom-badge">{getPartnerCategoryName(partner)}</span> : null}
+                      {normalizedCategory ? <span className="bloom-badge">{normalizedCategory}</span> : null}
                       {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
                     </div>
                     {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}

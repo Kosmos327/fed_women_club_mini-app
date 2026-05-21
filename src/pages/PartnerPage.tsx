@@ -1,7 +1,7 @@
 import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 import type { ApiOffer, ApiPartner, ApiVerification } from '../api/client';
-import { formatDateTime, formatVerificationStatus } from '../utils/format';
+import { formatDateTime, formatVerificationStatus, getPartnerCategoryName } from '../utils/format';
 import { getPartnerImages } from '../utils/partnerImage';
 import { PartnerPhotoGallery } from '../components/PartnerPhotoGallery';
 
@@ -68,6 +68,7 @@ export function PartnerPage({
   const partnerBenefit = selectedPartner?.discount_text ?? selectedPartner?.benefit_text;
   const partnerId = selectedPartner?.id != null ? String(selectedPartner.id) : '';
   const partnerCity = selectedPartner?.city_name ?? selectedPartner?.city;
+  const partnerCategory = selectedPartner ? getPartnerCategoryName(selectedPartner) : null;
   const partnerImages = getPartnerImages(selectedPartner);
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
   if (import.meta.env.DEV && selectedPartner) {
@@ -90,14 +91,13 @@ export function PartnerPage({
               alt={partnerName}
               imageClassName="partner-hero__image"
               placeholderClassName="partner-hero__placeholder"
-              placeholderLabel={selectedPartner?.category ?? 'Партнёр клуба'}
+              placeholderLabel={partnerCategory ?? 'Партнёр клуба'}
             />
             <Div>
               <Title level="1" weight="1">{partnerName}</Title>
-              {(selectedPartner?.category || selectedPartner?.category_name || selectedPartner?.service_category || selectedPartner?.type || partnerCity) ? (
+              {(partnerCategory || partnerCity) ? (
                 <div className="partner-badges">
-                  {(selectedPartner?.category ?? selectedPartner?.category_name ?? selectedPartner?.service_category ?? selectedPartner?.type)
-                    ? <span className="bloom-badge">{String(selectedPartner?.category ?? selectedPartner?.category_name ?? selectedPartner?.service_category ?? selectedPartner?.type)}</span> : null}
+                  {partnerCategory ? <span className="bloom-badge">{partnerCategory}</span> : null}
                   {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
                 </div>
               ) : null}
