@@ -4,8 +4,9 @@ import { AppShell } from '../components/AppShell';
 import type { ApiOffer, ApiPartner, ApiVerification } from '../api/client';
 import { formatDateTime, formatVerificationStatus, getPartnerCategoryName } from '../utils/format';
 import { getPartnerImages } from '../utils/partnerImage';
-import { PartnerPhotoGallery } from '../components/PartnerPhotoGallery';
+import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getOfferImages } from '../utils/offerImage';
+import { PhotoGalleryModal } from '../components/PhotoGalleryModal';
 
 type PartnerPageProps = {
   selectedPartner: ApiPartner | null;
@@ -66,6 +67,7 @@ export function PartnerPage({
   onOpenPrivileges,
 }: PartnerPageProps) {
   const [selectedOfferForGallery, setSelectedOfferForGallery] = useState<ApiOffer | null>(null);
+  const [isPartnerGalleryOpen, setIsPartnerGalleryOpen] = useState(false);
   const partnerName = selectedPartner?.name ?? selectedPartner?.title ?? 'Партнёр клуба';
   const partnerDescription = selectedPartner?.description ?? selectedPartner?.short_description;
   const partnerBenefit = selectedPartner?.discount_text ?? selectedPartner?.benefit_text;
@@ -90,13 +92,24 @@ export function PartnerPage({
         <Div className="bloom-page-title-card">Партнёр</Div>
         <Div>
           <Card className="partner-hero glass-panel" mode="shadow">
-            <PartnerPhotoGallery
-              images={partnerImages}
-              alt={partnerName}
-              imageClassName="partner-hero__image"
-              placeholderClassName="partner-hero__placeholder"
-              placeholderLabel={partnerCategory ?? 'Партнёр клуба'}
-            />
+            <div className="partner-hero__media">
+              <button
+                type="button"
+                className="partner-hero__media-button"
+                onClick={() => setIsPartnerGalleryOpen(true)}
+                aria-label="Открыть галерею партнёра"
+              >
+                <ImageWithFallback
+                  src={partnerImages[0] ?? null}
+                  alt={partnerName}
+                  className="partner-hero__image"
+                  placeholderClassName="partner-hero__placeholder"
+                  placeholderLabel={partnerCategory ?? 'Партнёр клуба'}
+                />
+                {partnerImages.length > 1 ? <span className="partner-hero__media-badge">{partnerImages.length} фото</span> : null}
+                <span className="partner-hero__media-cta">Смотреть фото</span>
+              </button>
+            </div>
             <Div>
               <Title level="1" weight="1">{partnerName}</Title>
               {(partnerCategory || partnerCity) ? (
@@ -112,7 +125,7 @@ export function PartnerPage({
           </Card>
         </Div>
 
-        <Header className="glass-panel">Услуги и привилегии</Header>
+        <Header className="glass-panel partner-offers-header">Услуги и привилегии</Header>
         {isOffersLoading ? <Div><Text className="state-note">Загружаем услуги…</Text></Div> : null}
         {!isOffersLoading && offersError ? <Div><Text className="state-note state-note--error">Не удалось загрузить услуги партнёра</Text></Div> : null}
         {!isOffersLoading && !offersError && offers.length === 0 ? <Div><Text className="state-note">У партнёра пока нет активных услуг</Text></Div> : null}
@@ -151,7 +164,7 @@ export function PartnerPage({
                           mode="secondary"
                           onClick={() => setSelectedOfferForGallery(offer)}
                         >
-                          Фото работ
+                          Посмотреть работы
                         </Button>
                         <Spacing size={8} />
                       </>
@@ -172,28 +185,16 @@ export function PartnerPage({
           })
           : null}
 
+        {isPartnerGalleryOpen && partnerImages.length > 0 ? (
+          <PhotoGalleryModal title={partnerName} images={partnerImages} initialIndex={0} onClose={() => setIsPartnerGalleryOpen(false)} />
+        ) : null}
         {selectedOfferForGallery && selectedOfferImages.length > 0 ? (
-          <Div>
-            <Card className="offer-card" mode="shadow">
-              <Div>
-                <Title className="offer-card__title" level="3" weight="2">
-                  Фото работ: {selectedOfferForGallery.name ?? selectedOfferForGallery.title ?? 'Услуга'}
-                </Title>
-                <Spacing size={8} />
-                <PartnerPhotoGallery
-                  images={selectedOfferImages}
-                  alt={String(selectedOfferForGallery.name ?? selectedOfferForGallery.title ?? 'Фото услуги')}
-                  imageClassName="partner-hero__image"
-                  placeholderClassName="partner-hero__placeholder"
-                  placeholderLabel="Фото услуги"
-                />
-                <Spacing size={12} />
-                <Button className="bloom-button-muted" mode="secondary" stretched onClick={() => setSelectedOfferForGallery(null)}>
-                  Закрыть фото
-                </Button>
-              </Div>
-            </Card>
-          </Div>
+          <PhotoGalleryModal
+            title={`Работы: ${selectedOfferForGallery.name ?? selectedOfferForGallery.title ?? 'Услуга'}`}
+            images={selectedOfferImages}
+            initialIndex={0}
+            onClose={() => setSelectedOfferForGallery(null)}
+          />
         ) : null}
 
         {createVerificationError ? (
