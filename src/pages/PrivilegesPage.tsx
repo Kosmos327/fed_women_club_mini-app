@@ -11,7 +11,7 @@ type PrivilegesPageProps = {
 
 export function PrivilegesPage({ onBack, verifications }: PrivilegesPageProps) {
   return (
-    <AppShell title="Мои привилегии">
+    <AppShell titleClassName="bloom-page-title" title="Мои привилегии">
       <Group className="fade-up">
         <Header className="glass-panel">Мои привилегии</Header>
         {verifications.length === 0 ? (

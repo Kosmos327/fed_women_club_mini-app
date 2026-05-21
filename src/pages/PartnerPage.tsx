@@ -81,7 +81,7 @@ export function PartnerPage({
   }
 
   return (
-    <AppShell title="Партнёр">
+    <AppShell titleClassName="bloom-page-title" title="Партнёр">
       <Group className="fade-up">
         <Header className="glass-panel">Партнёр</Header>
         <Div>

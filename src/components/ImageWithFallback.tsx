@@ -34,5 +34,11 @@ export function ImageWithFallback({
     );
   }
 
-  return <img className={className} src={src ?? undefined} alt={alt} loading="lazy" onError={() => setFailed(true)} />;
+  return (
+    <div className="bloom-media">
+      <div className="bloom-media__bg" style={{ backgroundImage: `url(${src})` }} aria-hidden="true" />
+      <div className="bloom-media__overlay" aria-hidden="true" />
+      <img className={className} src={src ?? undefined} alt={alt} loading="lazy" onError={() => setFailed(true)} />
+    </div>
+  );
 }
