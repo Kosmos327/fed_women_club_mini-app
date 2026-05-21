@@ -52,16 +52,20 @@ export function PartnerPhotoGallery({
 
   return (
     <div className="partner-gallery">
-      <img
-        src={currentImage}
-        alt={alt}
-        className={imageClassName}
-        onError={() => {
+      <div className="bloom-media">
+        <div className="bloom-media__bg" style={{ backgroundImage: `url(${currentImage})` }} aria-hidden="true" />
+        <div className="bloom-media__overlay" aria-hidden="true" />
+        <img
+          src={currentImage}
+          alt={alt}
+          className={imageClassName}
+          onError={() => {
           const currentSrc = safeImages[currentIndex] ?? safeImages[0];
           if (!currentSrc) return;
           setBrokenImages((prev) => new Set(prev).add(currentSrc));
-        }}
-      />
+          }}
+        />
+      </div>
       {hasMany ? (
         <>
           <button type="button" className="partner-gallery__nav partner-gallery__nav--prev" onClick={goPrev} aria-label="Предыдущее фото">‹</button>

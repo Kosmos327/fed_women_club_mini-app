@@ -36,7 +36,7 @@ export function SubscriptionPage({
   const paymentId = paymentRequest?.id;
 
   return (
-    <AppShell title="Подписка">
+    <AppShell titleClassName="bloom-page-title" title="Подписка">
       <Group className="fade-up">
         <Header className="glass-panel">Подписка</Header>
         <Div>

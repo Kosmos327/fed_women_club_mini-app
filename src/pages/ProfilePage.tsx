@@ -78,7 +78,7 @@ export function ProfilePage({
   };
 
   return (
-    <AppShell title="Профиль">
+    <AppShell titleClassName="bloom-page-title" title="Профиль">
       <Group className="fade-up">
         <Header className="glass-panel">Данные участницы</Header>
         <Card mode="shadow" className="profile-card glass-panel">

@@ -395,3 +395,65 @@ body {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
+
+
+.bloom-content {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+.bloom-panel-header .vkuiPanelHeader__content {
+  justify-content: center;
+}
+
+.bloom-page-title {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 9px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #251817;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 10px 24px rgba(70, 40, 40, 0.14);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.bloom-media {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.bloom-media__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px);
+  transform: scale(1.08);
+  opacity: 0.48;
+}
+
+.bloom-media__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.16));
+}
+
+.partner-card__image,
+.partner-hero__image {
+  position: relative;
+  z-index: 1;
+}
+
+.partner-card .bloom-media { height: clamp(300px, 55vw, 360px); }
+.partner-hero .bloom-media { height: clamp(360px, 66vw, 420px); }
+
+.partner-card__image,
+.partner-hero__image,
+.partner-card__placeholder,
+.partner-hero__placeholder {
+  height: 100%;
+}

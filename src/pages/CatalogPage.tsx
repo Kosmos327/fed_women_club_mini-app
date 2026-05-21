@@ -43,7 +43,7 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
   }
 
   return (
-    <AppShell title="Партнёры">
+    <AppShell titleClassName="bloom-page-title" title="Партнёры">
       <Group className="fade-up">
         <Header className="glass-panel">Партнёры</Header>
         {partners.length === 0 ? (
@@ -100,7 +100,7 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                     {partnerDescription ? <Text className="partner-card__description">{partnerDescription}</Text> : null}
                     {partnerBenefit ? <Text className="partner-card__benefit">{partnerBenefit}</Text> : null}
                     <Spacing size={12} />
-                    <Button className="bloom-button-secondary partner-card__button" stretched size="m" onClick={() => onPartnerClick(partner)}>Подробнее</Button>
+                    <Button className="bloom-button-primary partner-card__button" mode="secondary" stretched size="m" onClick={() => onPartnerClick(partner)}>Подробнее</Button>
                   </Div>
                 </Card>
               );
