@@ -84,6 +84,19 @@ const extractProfileApiState = (data: unknown): ProfileApiState => {
   };
 };
 
+const parseApiErrorDetail = (error: unknown): string => {
+  const rawMessage = error instanceof Error ? error.message : String(error ?? '');
+  if (!rawMessage) return '';
+  try {
+    const parsed = JSON.parse(rawMessage) as { detail?: unknown; message?: unknown };
+    if (typeof parsed.detail === 'string') return parsed.detail;
+    if (typeof parsed.message === 'string') return parsed.message;
+  } catch {
+    // noop
+  }
+  return rawMessage;
+};
+
 export default function App() {
   const [authState, setAuthState] = useState<AuthState>('loading');
   const [page, setPage] = useState<Page>('home');
@@ -214,8 +227,13 @@ export default function App() {
         offerId ? { offer_id: offerId } : undefined,
       );
       setCreatedVerification(data ?? null);
-    } catch {
-      setCreateVerificationError('Не удалось получить код. Попробуйте ещё раз.');
+    } catch (error) {
+      const detail = parseApiErrorDetail(error).toLowerCase();
+      if (detail.includes('одну привилегию в месяц') || detail.includes('уже получили привилегию') || detail.includes('в этом месяце')) {
+        setCreateVerificationError('Вы уже получили привилегию у этого партнёра в этом месяце. Новую можно будет получить в следующем месяце.');
+      } else {
+        setCreateVerificationError('Не удалось получить код. Попробуйте ещё раз.');
+      }
     } finally {
       setIsCreatingVerification(false);
     }
