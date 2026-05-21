@@ -26,20 +26,25 @@ const toMediaUrl = (value: unknown): string | null => {
   }
 };
 
-const pickPhotoFromCollection = (value: unknown): string | null => {
-  if (!Array.isArray(value) || value.length === 0) return null;
-
-  const activePhoto = value.find((item) => {
-    if (!item || typeof item !== 'object') return false;
-    const status = (item as Record<string, unknown>).is_active;
-    return status === true;
+const normalizePhotoCollection = (value: unknown): Record<string, unknown>[] => {
+  if (!Array.isArray(value) || value.length === 0) return [];
+  const objects = value.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object'));
+  const hasActiveFlag = objects.some((item) => Object.prototype.hasOwnProperty.call(item, 'is_active'));
+  const filtered = hasActiveFlag ? objects.filter((item) => item.is_active === true) : objects;
+  return [...filtered].sort((a, b) => {
+    const sortOrderA = typeof a.sort_order === 'number' ? a.sort_order : Number(a.sort_order ?? Number.MAX_SAFE_INTEGER);
+    const sortOrderB = typeof b.sort_order === 'number' ? b.sort_order : Number(b.sort_order ?? Number.MAX_SAFE_INTEGER);
+    if (sortOrderA !== sortOrderB) return sortOrderA - sortOrderB;
+    const idA = typeof a.id === 'number' ? a.id : Number(a.id ?? Number.MAX_SAFE_INTEGER);
+    const idB = typeof b.id === 'number' ? b.id : Number(b.id ?? Number.MAX_SAFE_INTEGER);
+    return idA - idB;
   });
+};
 
-  const candidates = activePhoto ? [activePhoto, ...value] : value;
-
-  for (const item of candidates) {
-    if (!item || typeof item !== 'object') continue;
-    const record = item as Record<string, unknown>;
+const pickPhotoUrlsFromCollection = (value: unknown): string[] => {
+  const items = normalizePhotoCollection(value);
+  const result: string[] = [];
+  for (const record of items) {
     const src =
       toMediaUrl(record.photo_url) ??
       toMediaUrl(record.image_url) ??
@@ -53,27 +58,28 @@ const pickPhotoFromCollection = (value: unknown): string | null => {
       toMediaUrl(record.logo) ??
       toMediaUrl(record.url);
 
-    if (src) return src;
+    if (src) result.push(src);
   }
-
-  return null;
+  return result;
 };
 
-export const getPartnerImageSrc = (partner: ApiPartner | null): string | null => {
-  if (!partner) return null;
-
-  return (
-    toMediaUrl(partner.photo_url) ??
-    toMediaUrl(partner.image_url) ??
-    toMediaUrl(partner.cover_url) ??
-    toMediaUrl(partner.logo_url) ??
-    toMediaUrl(partner.avatar_url) ??
-    toMediaUrl(partner.main_photo_url) ??
-    toMediaUrl(partner.photo) ??
-    toMediaUrl(partner.image) ??
-    toMediaUrl(partner.cover) ??
-    toMediaUrl(partner.logo) ??
-    pickPhotoFromCollection(partner.photos) ??
-    pickPhotoFromCollection(partner.partner_photos)
-  );
+export const getPartnerImages = (partner: ApiPartner | null): string[] => {
+  if (!partner) return [];
+  const urls = [
+    ...pickPhotoUrlsFromCollection(partner.photos),
+    ...pickPhotoUrlsFromCollection(partner.partner_photos),
+    toMediaUrl(partner.photo_url),
+    toMediaUrl(partner.image_url),
+    toMediaUrl(partner.cover_url),
+    toMediaUrl(partner.logo_url),
+    toMediaUrl(partner.avatar_url),
+    toMediaUrl(partner.main_photo_url),
+    toMediaUrl(partner.photo),
+    toMediaUrl(partner.image),
+    toMediaUrl(partner.cover),
+    toMediaUrl(partner.logo),
+  ].filter((value): value is string => Boolean(value));
+  return [...new Set(urls)];
 };
+
+export const getPartnerImageSrc = (partner: ApiPartner | null): string | null => getPartnerImages(partner)[0] ?? null;

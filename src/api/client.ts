@@ -72,6 +72,9 @@ export type ApiPartner = {
   name?: string;
   title?: string;
   category?: string;
+  category_name?: string;
+  type?: string;
+  service_category?: string;
   city?: string;
   city_name?: string;
   address?: string;
