@@ -1,4 +1,4 @@
-import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
+import { Button, Card, Div, Group, Spacing, Text, Title } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 import type { ApiPaymentRequest, ApiSubscription } from '../api/client';
 import { formatDate, formatDateTime, formatMoney, formatSubscriptionStatus } from '../utils/format';
@@ -36,9 +36,9 @@ export function SubscriptionPage({
   const paymentId = paymentRequest?.id;
 
   return (
-    <AppShell titleClassName="bloom-page-title" title="Подписка">
+    <AppShell titleClassName="bloom-panel-header-title-compact" title="Подписка">
       <Group className="fade-up">
-        <Header className="glass-panel">Подписка</Header>
+        <Div className="bloom-page-title-card">Подписка</Div>
         <Div>
           <Card mode="shadow" className="subscription-card glass-panel">
             <Div>

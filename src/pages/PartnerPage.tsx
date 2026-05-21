@@ -81,9 +81,9 @@ export function PartnerPage({
   }
 
   return (
-    <AppShell titleClassName="bloom-page-title" title="Партнёр">
+    <AppShell titleClassName="bloom-panel-header-title-compact" title="Партнёр">
       <Group className="fade-up">
-        <Header className="glass-panel">Партнёр</Header>
+        <Div className="bloom-page-title-card">Партнёр</Div>
         <Div>
           <Card className="partner-hero glass-panel" mode="shadow">
             <PartnerPhotoGallery

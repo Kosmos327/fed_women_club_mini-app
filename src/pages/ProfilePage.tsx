@@ -78,8 +78,9 @@ export function ProfilePage({
   };
 
   return (
-    <AppShell titleClassName="bloom-page-title" title="Профиль">
+    <AppShell titleClassName="bloom-panel-header-title-compact" title="Профиль">
       <Group className="fade-up">
+        <Div className="bloom-page-title-card">Профиль</Div>
         <Header className="glass-panel">Данные участницы</Header>
         <Card mode="shadow" className="profile-card glass-panel">
           <Div>
