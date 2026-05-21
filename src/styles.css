@@ -31,26 +31,24 @@ body {
 .bloom-app::after {
   content: '';
   position: fixed;
+  inset: 0;
   pointer-events: none;
-  border-radius: 50%;
-  filter: blur(1px);
   z-index: 0;
 }
 
 .bloom-app::before {
-  width: 240px;
-  height: 240px;
-  top: -90px;
-  right: -60px;
-  background: rgba(255, 255, 255, 0.4);
+  background-image: url('/backgrounds/bloom-bg.png');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.17;
 }
 
 .bloom-app::after {
-  width: 210px;
-  height: 210px;
-  left: -70px;
-  bottom: 15%;
-  background: rgba(244, 217, 213, 0.4);
+  background:
+    radial-gradient(circle at 8% 10%, rgba(255, 214, 210, 0.32), transparent 36%),
+    radial-gradient(circle at 100% 6%, rgba(244, 217, 213, 0.3), transparent 42%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.36) 100%);
 }
 
 .bloom-content,
