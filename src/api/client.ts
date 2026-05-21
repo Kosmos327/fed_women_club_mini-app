@@ -113,6 +113,15 @@ export type ApiOffer = {
   is_active?: boolean;
   status?: string;
   sort_order?: number | string | null;
+  photos?: Array<{
+    id?: number | string;
+    url?: string | null;
+    alt_text?: string | null;
+    sort_order?: number | string | null;
+  }> | null;
+  photo_url?: string | null;
+  image_url?: string | null;
+  cover_url?: string | null;
 } & Record<string, unknown>;
 
 

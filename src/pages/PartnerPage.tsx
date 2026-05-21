@@ -1,9 +1,11 @@
 import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
+import { useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import type { ApiOffer, ApiPartner, ApiVerification } from '../api/client';
 import { formatDateTime, formatVerificationStatus, getPartnerCategoryName } from '../utils/format';
 import { getPartnerImages } from '../utils/partnerImage';
 import { PartnerPhotoGallery } from '../components/PartnerPhotoGallery';
+import { getOfferImages } from '../utils/offerImage';
 
 type PartnerPageProps = {
   selectedPartner: ApiPartner | null;
@@ -63,6 +65,7 @@ export function PartnerPage({
   createVerificationError,
   onOpenPrivileges,
 }: PartnerPageProps) {
+  const [selectedOfferForGallery, setSelectedOfferForGallery] = useState<ApiOffer | null>(null);
   const partnerName = selectedPartner?.name ?? selectedPartner?.title ?? 'Партнёр клуба';
   const partnerDescription = selectedPartner?.description ?? selectedPartner?.short_description;
   const partnerBenefit = selectedPartner?.discount_text ?? selectedPartner?.benefit_text;
@@ -71,6 +74,7 @@ export function PartnerPage({
   const partnerCategory = selectedPartner ? getPartnerCategoryName(selectedPartner) : null;
   const partnerImages = getPartnerImages(selectedPartner);
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
+  const selectedOfferImages = getOfferImages(selectedOfferForGallery);
   if (import.meta.env.DEV && selectedPartner) {
     console.debug('Partner page image resolution', {
       partnerId: selectedPartner.id,
@@ -119,6 +123,8 @@ export function PartnerPage({
             const offerDescription = offer.short_benefit ?? offer.description;
             const { basePrice, discountPercent, finalPrice } = resolveOfferPricing(offer);
             const isCurrentOfferLoading = isCreatingVerification && selectedOfferIdForVerification === offerId;
+            const offerImages = getOfferImages(offer);
+            const hasOfferImages = offerImages.length > 0;
 
             return (
               <Div key={offerId || `offer-${index}`}>
@@ -136,6 +142,20 @@ export function PartnerPage({
                     </div>
 
                     <Spacing size={12} />
+                    {hasOfferImages ? (
+                      <>
+                        <Button
+                          className="bloom-button-secondary"
+                          size="l"
+                          stretched
+                          mode="secondary"
+                          onClick={() => setSelectedOfferForGallery(offer)}
+                        >
+                          Фото работ
+                        </Button>
+                        <Spacing size={8} />
+                      </>
+                    ) : null}
                     <Button
                       className="bloom-button-primary"
                       size="l"
@@ -151,6 +171,30 @@ export function PartnerPage({
             );
           })
           : null}
+
+        {selectedOfferForGallery && selectedOfferImages.length > 0 ? (
+          <Div>
+            <Card className="offer-card" mode="shadow">
+              <Div>
+                <Title className="offer-card__title" level="3" weight="2">
+                  Фото работ: {selectedOfferForGallery.name ?? selectedOfferForGallery.title ?? 'Услуга'}
+                </Title>
+                <Spacing size={8} />
+                <PartnerPhotoGallery
+                  images={selectedOfferImages}
+                  alt={String(selectedOfferForGallery.name ?? selectedOfferForGallery.title ?? 'Фото услуги')}
+                  imageClassName="partner-hero__image"
+                  placeholderClassName="partner-hero__placeholder"
+                  placeholderLabel="Фото услуги"
+                />
+                <Spacing size={12} />
+                <Button className="bloom-button-muted" mode="secondary" stretched onClick={() => setSelectedOfferForGallery(null)}>
+                  Закрыть фото
+                </Button>
+              </Div>
+            </Card>
+          </Div>
+        ) : null}
 
         {createVerificationError ? (
           <Div>
@@ -174,6 +218,8 @@ export function PartnerPage({
                   <Text>Код создан, проверьте раздел «Мои привилегии».</Text>
                 )}
                 {verificationOfferLabel ? (<><Spacing size={8} /><Text>Услуга: {verificationOfferLabel}</Text></>) : null}
+                <Spacing size={8} />
+                <Text>Партнёр: {partnerName}</Text>
                 {createdVerification.status ? (
                   <>
                     <Spacing size={8} />
@@ -187,7 +233,7 @@ export function PartnerPage({
                   </>
                 ) : null}
                 <Spacing size={8} />
-                <Text>Покажите этот код партнёру.</Text>
+                <Text>Инструкция: покажите этот код партнёру при получении услуги.</Text>
                 <Spacing size={12} />
                 <Button className="bloom-button-secondary" stretched onClick={onOpenPrivileges}>Мои привилегии</Button>
               </Div>
