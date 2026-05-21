@@ -1,4 +1,4 @@
-import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
+import { Button, Card, Div, Group, Spacing, Text, Title } from '@vkontakte/vkui';
 import { useMemo, useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { EmptyState } from '../components/EmptyState';
@@ -43,9 +43,9 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
   }
 
   return (
-    <AppShell titleClassName="bloom-page-title" title="Партнёры">
+    <AppShell titleClassName="bloom-panel-header-title-compact" title="Партнёры">
       <Group className="fade-up">
-        <Header className="glass-panel">Партнёры</Header>
+        <Div className="bloom-page-title-card">Партнёры</Div>
         {partners.length === 0 ? (
           <EmptyState header="Партнёров пока нет" description="В вашем городе пока нет партнёров" />
         ) : (

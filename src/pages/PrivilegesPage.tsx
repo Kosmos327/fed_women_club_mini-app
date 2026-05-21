@@ -1,4 +1,4 @@
-import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
+import { Button, Card, Div, Group, Spacing, Text, Title } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 import { EmptyState } from '../components/EmptyState';
 import type { ApiVerification } from '../api/client';
@@ -11,9 +11,9 @@ type PrivilegesPageProps = {
 
 export function PrivilegesPage({ onBack, verifications }: PrivilegesPageProps) {
   return (
-    <AppShell titleClassName="bloom-page-title" title="Мои привилегии">
+    <AppShell titleClassName="bloom-panel-header-title-compact" title="Мои привилегии">
       <Group className="fade-up">
-        <Header className="glass-panel">Мои привилегии</Header>
+        <Div className="bloom-page-title-card">Мои привилегии</Div>
         {verifications.length === 0 ? (
           <EmptyState header="Пока пусто" description="У вас пока нет активных привилегий" />
         ) : (

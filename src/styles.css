@@ -405,19 +405,25 @@ body {
   justify-content: center;
 }
 
-.bloom-page-title {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 9px 16px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.86);
-  color: #251817;
-  font-weight: 800;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 10px 24px rgba(70, 40, 40, 0.14);
+.bloom-panel-header-title-compact {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(42, 32, 32, 0.82);
+}
+
+.bloom-page-title-card {
+  margin: 6px 12px 0;
+  padding: 12px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 24px rgba(123, 73, 68, 0.14);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  color: #2a2020;
+  font-size: 26px;
+  line-height: 1.15;
+  font-weight: 800;
 }
 
 .bloom-media {
