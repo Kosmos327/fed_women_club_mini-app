@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type TouchEventHandler } from 'react';
+import { createPortal } from 'react-dom';
 
 type PhotoGalleryModalProps = {
   title: string;
@@ -46,6 +47,34 @@ export function PhotoGalleryModal({ title, images, initialIndex = 0, onClose }: 
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [onClose, safeImages.length]);
 
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+
+    html.classList.add('gallery-modal-open');
+    body.classList.add('gallery-modal-open');
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.width = '100%';
+
+    return () => {
+      const bodyTop = body.style.top;
+      html.classList.remove('gallery-modal-open');
+      body.classList.remove('gallery-modal-open');
+      body.style.position = '';
+      body.style.top = '';
+      body.style.left = '';
+      body.style.right = '';
+      body.style.width = '';
+      const nextScrollY = Math.abs(parseInt(bodyTop || '0', 10));
+      window.scrollTo(0, Number.isFinite(nextScrollY) ? nextScrollY : 0);
+    };
+  }, []);
+
   if (safeImages.length === 0) return null;
 
   const currentImage = safeImages[currentIndex] ?? safeImages[0];
@@ -90,7 +119,7 @@ export function PhotoGalleryModal({ title, images, initialIndex = 0, onClose }: 
     touchCurrentRef.current = null;
   };
 
-  return (
+  return createPortal(
     <div className="gallery-modal-overlay" onClick={onClose} role="presentation">
       <div className="gallery-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label={title}>
         <div className="gallery-modal__header">
@@ -117,6 +146,7 @@ export function PhotoGalleryModal({ title, images, initialIndex = 0, onClose }: 
           ) : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

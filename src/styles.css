@@ -659,3 +659,114 @@ body {
   0%, 100% { opacity: 0.75; }
   50% { opacity: 1; }
 }
+
+html.gallery-modal-open,
+body.gallery-modal-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body.gallery-modal-open {
+  touch-action: none;
+}
+
+.partner-hero__media {
+  width: 100%;
+  max-width: 100%;
+}
+
+.partner-hero .bloom-media {
+  height: clamp(300px, 52dvh, 420px);
+}
+
+@media (max-width: 768px) {
+  .partner-hero .bloom-media {
+    height: clamp(260px, 45dvh, 340px);
+    max-height: 340px;
+  }
+
+  .partner-hero__image,
+  .partner-hero__placeholder {
+    min-height: 0;
+  }
+}
+
+.gallery-modal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: calc(12px + env(safe-area-inset-top)) 12px calc(18px + env(safe-area-inset-bottom));
+  background: rgba(30, 18, 20, 0.58);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.gallery-modal {
+  width: min(96vw, 720px);
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 24px 54px rgba(28, 17, 19, 0.33);
+}
+
+.gallery-modal__header {
+  flex: 0 0 auto;
+  padding: 12px 14px;
+}
+
+.gallery-modal__counter {
+  color: #2a2020;
+}
+
+.gallery-modal__close {
+  width: 40px;
+  height: 40px;
+  background: rgba(42, 32, 32, 0.12);
+  color: #2a2020;
+}
+
+.gallery-modal__media {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: min(68dvh, 560px);
+  max-height: calc(100dvh - 150px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.gallery-modal__bg {
+  opacity: 0.26;
+}
+
+.gallery-modal__img {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.gallery-modal__nav {
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  background: rgba(42, 32, 32, 0.52);
+  color: #fff;
+}
+
+.gallery-modal__nav--prev { left: 10px; }
+.gallery-modal__nav--next { right: 10px; }
