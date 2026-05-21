@@ -1,4 +1,5 @@
 import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
+import { useMemo, useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
@@ -13,6 +14,26 @@ type CatalogPageProps = {
 
 
 export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
+  const [activeCategory, setActiveCategory] = useState('Все');
+  const resolveCategory = (partner: ApiPartner): string | null => {
+    const value =
+      (partner.category && typeof partner.category === 'object'
+        ? ((partner.category as Record<string, unknown>).name ?? (partner.category as Record<string, unknown>).title)
+        : partner.category) ??
+      partner.category_name ??
+      partner.type ??
+      partner.service_category;
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+  };
+  const categories = useMemo(
+    () => ['Все', ...Array.from(new Set(partners.map(resolveCategory).filter((value): value is string => Boolean(value))))],
+    [partners],
+  );
+  const filteredPartners = useMemo(
+    () => (activeCategory === 'Все' ? partners : partners.filter((partner) => resolveCategory(partner) === activeCategory)),
+    [activeCategory, partners],
+  );
+
   return (
     <AppShell title="Партнёры">
       <Group className="fade-up">
@@ -20,14 +41,28 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
         {partners.length === 0 ? (
           <EmptyState header="Партнёров пока нет" description="В вашем городе пока нет партнёров" />
         ) : (
-          <Div className="partner-catalog-grid">
-            {partners.map((partner, index) => {
+          <>
+            <Div className="catalog-filters">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  className={`catalog-filter-chip ${activeCategory === category ? 'catalog-filter-chip--active' : ''}`}
+                  onClick={() => setActiveCategory(category)}
+                >
+                  {category}
+                </button>
+              ))}
+            </Div>
+            {filteredPartners.length === 0 ? <EmptyState header="Ничего не найдено" description="Попробуйте выбрать другую категорию" /> : null}
+            <Div className="partner-catalog-grid">
+              {filteredPartners.map((partner, index) => {
               const partnerName = partner.name ?? partner.title ?? 'Партнёр клуба';
               const partnerCity = partner.city_name ?? partner.city;
               const partnerDescription = partner.description ?? partner.short_description;
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
-              const categoryLabel = partner.category ?? 'Партнёр клуба';
+              const categoryLabel = resolveCategory(partner) ?? 'Без категории';
               if (import.meta.env.DEV) {
                 console.debug('Catalog partner image resolution', {
                   partnerId: partner.id,
@@ -37,7 +72,7 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                 });
               }
 
-              return (
+                return (
                 <Card className="partner-card" mode="shadow" key={String(partner.id ?? `${partnerName}-${index}`)}>
                   <ImageWithFallback
                     src={partnerImage}
@@ -49,10 +84,10 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                   <Div>
                     <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
                     <div className="partner-badges">
-                      {partner.category ? <span className="bloom-badge">{partner.category}</span> : null}
+                      {resolveCategory(partner) ? <span className="bloom-badge">{resolveCategory(partner)}</span> : null}
                       {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
                     </div>
-                                        {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}
+                    {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}
                     {partnerDescription ? <Text className="partner-card__description">{partnerDescription}</Text> : null}
                     {partnerBenefit ? <Text className="partner-card__benefit">{partnerBenefit}</Text> : null}
                     <Spacing size={12} />
@@ -60,8 +95,9 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                   </Div>
                 </Card>
               );
-            })}
-          </Div>
+              })}
+            </Div>
+          </>
         )}
         <Div><Button className="bloom-button-muted" mode="secondary" onClick={onBack}>Назад</Button></Div>
       </Group>

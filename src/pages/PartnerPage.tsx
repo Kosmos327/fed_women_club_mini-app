@@ -2,8 +2,8 @@ import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontak
 import { AppShell } from '../components/AppShell';
 import type { ApiOffer, ApiPartner, ApiVerification } from '../api/client';
 import { formatDateTime, formatVerificationStatus } from '../utils/format';
-import { ImageWithFallback } from '../components/ImageWithFallback';
-import { getPartnerImageSrc } from '../utils/partnerImage';
+import { getPartnerImages } from '../utils/partnerImage';
+import { PartnerPhotoGallery } from '../components/PartnerPhotoGallery';
 
 type PartnerPageProps = {
   selectedPartner: ApiPartner | null;
@@ -68,14 +68,14 @@ export function PartnerPage({
   const partnerBenefit = selectedPartner?.discount_text ?? selectedPartner?.benefit_text;
   const partnerId = selectedPartner?.id != null ? String(selectedPartner.id) : '';
   const partnerCity = selectedPartner?.city_name ?? selectedPartner?.city;
-  const partnerImage = getPartnerImageSrc(selectedPartner);
+  const partnerImages = getPartnerImages(selectedPartner);
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
   if (import.meta.env.DEV && selectedPartner) {
     console.debug('Partner page image resolution', {
       partnerId: selectedPartner.id,
       partnerName,
       partnerKeys: Object.keys(selectedPartner),
-      resolvedImage: partnerImage,
+      resolvedImages: partnerImages,
     });
   }
 
@@ -85,10 +85,10 @@ export function PartnerPage({
         <Header>Партнёр</Header>
         <Div>
           <Card className="partner-hero" mode="shadow">
-            <ImageWithFallback
-              src={partnerImage}
+            <PartnerPhotoGallery
+              images={partnerImages}
               alt={partnerName}
-              className="partner-hero__image"
+              imageClassName="partner-hero__image"
               placeholderClassName="partner-hero__placeholder"
               placeholderLabel={selectedPartner?.category ?? 'Партнёр клуба'}
             />
