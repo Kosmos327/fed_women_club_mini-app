@@ -1,8 +1,8 @@
 :root {
   --bloom-bg: #fff7f5;
   --bloom-bg-soft: #f8eeee;
-  --bloom-surface: rgba(255, 255, 255, 0.86);
-  --bloom-surface-strong: rgba(255, 255, 255, 0.94);
+  --bloom-surface: rgba(255, 255, 255, 0.80);
+  --bloom-surface-strong: rgba(255, 255, 255, 0.84);
   --bloom-primary: #a65f57;
   --bloom-primary-dark: #7f423d;
   --bloom-primary-soft: #f4d9d5;
@@ -17,9 +17,7 @@
 body {
   min-height: 100dvh;
   color: var(--bloom-text);
-  background: radial-gradient(circle at 8% 10%, rgba(255, 214, 210, 0.56), transparent 36%),
-    radial-gradient(circle at 100% 6%, rgba(244, 217, 213, 0.5), transparent 42%),
-    linear-gradient(165deg, var(--bloom-bg) 0%, var(--bloom-bg-soft) 100%);
+  background: transparent;
 }
 
 .bloom-app {
@@ -34,7 +32,13 @@ body {
 .vkuiAppRoot,
 .vkuiSplitLayout,
 .vkuiSplitCol,
-.vkuiPanel {
+.vkuiPanel,
+.vkuiPanel__in,
+.vkuiGroup,
+.vkuiGroup__inner,
+.vkuiPanelHeader,
+.bloom-page,
+.bloom-shell {
   min-height: 100dvh;
   background: transparent !important;
 }
@@ -53,14 +57,14 @@ body {
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  opacity: 0.44;
+  opacity: 0.56;
 }
 
 .bloom-app::after {
   background:
-    radial-gradient(circle at 8% 10%, rgba(255, 214, 210, 0.08), transparent 36%),
-    radial-gradient(circle at 100% 6%, rgba(244, 217, 213, 0.06), transparent 42%),
-    linear-gradient(165deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.1) 100%);
+    radial-gradient(circle at 8% 10%, rgba(255, 214, 210, 0.05), transparent 36%),
+    radial-gradient(circle at 100% 6%, rgba(244, 217, 213, 0.04), transparent 42%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.05) 100%);
 }
 
 .bloom-content,
@@ -82,8 +86,8 @@ body {
   background: var(--bloom-surface);
   box-shadow: var(--bloom-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .bloom-content .vkuiCard:hover,
@@ -231,7 +235,7 @@ body {
 .bloom-button-primary:active { filter: brightness(0.96); }
 
 .bloom-button-secondary {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
   color: #8f4f49;
   border: 1px solid rgba(166, 95, 87, 0.22);
 }

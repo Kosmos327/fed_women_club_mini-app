@@ -3,6 +3,7 @@ import { AppShell } from '../components/AppShell';
 import type { ApiOffer, ApiPartner, ApiVerification } from '../api/client';
 import { formatDateTime, formatVerificationStatus } from '../utils/format';
 import { ImageWithFallback } from '../components/ImageWithFallback';
+import { getPartnerImageSrc } from '../utils/partnerImage';
 
 type PartnerPageProps = {
   selectedPartner: ApiPartner | null;
@@ -39,17 +40,6 @@ const resolveOfferPricing = (offer: ApiOffer) => {
   return { basePrice, discountPercent, finalPrice: computedFinalPrice };
 };
 
-const resolvePartnerImage = (partner: ApiPartner | null): string | null => {
-  if (!partner) return null;
-  const imageSource = [
-    partner.photo_url,
-    partner.image_url,
-    partner.cover,
-    (partner as Record<string, unknown>).logo_url,
-  ].find((value) => typeof value === 'string' && value.trim().length > 0);
-
-  return typeof imageSource === 'string' ? imageSource : null;
-};
 
 const getVerificationOfferLabel = (verification: ApiVerification | null, offers: ApiOffer[], selectedOfferId: string): string => {
   if (!verification) return '';
@@ -78,7 +68,7 @@ export function PartnerPage({
   const partnerBenefit = selectedPartner?.discount_text ?? selectedPartner?.benefit_text;
   const partnerId = selectedPartner?.id != null ? String(selectedPartner.id) : '';
   const partnerCity = selectedPartner?.city_name ?? selectedPartner?.city;
-  const partnerImage = resolvePartnerImage(selectedPartner);
+  const partnerImage = getPartnerImageSrc(selectedPartner);
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
 
   return (

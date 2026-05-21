@@ -2,6 +2,7 @@ import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontak
 import { AppShell } from '../components/AppShell';
 import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
+import { getPartnerImageSrc } from '../utils/partnerImage';
 import type { ApiPartner } from '../api/client';
 
 type CatalogPageProps = {
@@ -10,18 +11,6 @@ type CatalogPageProps = {
   onPartnerClick: (partner: ApiPartner) => void;
 };
 
-const resolvePartnerImage = (partner: ApiPartner): string | null => {
-  const imageSource = [
-    partner.photo_url,
-    partner.image_url,
-    partner.cover,
-    partner.avatar,
-    partner.logo,
-    (partner as Record<string, unknown>).logo_url,
-  ].find((value) => typeof value === 'string' && value.trim().length > 0);
-
-  return typeof imageSource === 'string' ? imageSource : null;
-};
 
 export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
   return (
@@ -37,7 +26,7 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
               const partnerCity = partner.city_name ?? partner.city;
               const partnerDescription = partner.description ?? partner.short_description;
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
-              const partnerImage = resolvePartnerImage(partner);
+              const partnerImage = getPartnerImageSrc(partner);
               const categoryLabel = partner.category ?? 'Партнёр клуба';
 
               return (

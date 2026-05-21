@@ -79,8 +79,18 @@ export type ApiPartner = {
   short_description?: string;
   discount_text?: string;
   benefit_text?: string;
+  photo_url?: string;
   image_url?: string;
+  cover_url?: string;
   logo_url?: string;
+  avatar_url?: string;
+  main_photo_url?: string;
+  photo?: string;
+  image?: string;
+  cover?: string;
+  logo?: string;
+  photos?: unknown[];
+  partner_photos?: unknown[];
   is_active?: boolean;
 } & Record<string, unknown>;
 
