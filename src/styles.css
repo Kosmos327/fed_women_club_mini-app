@@ -24,6 +24,10 @@ body {
   position: relative;
   min-height: 100dvh;
   background: transparent;
+  --vkui--color_background: transparent;
+  --vkui--color_background_content: transparent;
+  --vkui--color_background_secondary: transparent;
+  --vkui--color_background_tertiary: transparent;
 }
 
 #root,
@@ -69,9 +73,13 @@ body {
 
 .bloom-content,
 .bloom-content .vkuiGroup,
-.bloom-content .vkuiDiv {
+.bloom-content .vkuiDiv,
+.bloom-content .vkuiPanel__in,
+.bloom-content .vkuiPanel__in-before,
+.bloom-content .vkuiPanel__in-after {
   position: relative;
   z-index: 1;
+  background: transparent !important;
 }
 
 .bloom-card,

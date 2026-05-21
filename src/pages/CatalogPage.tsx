@@ -28,6 +28,14 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
               const categoryLabel = partner.category ?? 'Партнёр клуба';
+              if (import.meta.env.DEV) {
+                console.debug('Catalog partner image resolution', {
+                  partnerId: partner.id,
+                  partnerName,
+                  partnerKeys: Object.keys(partner),
+                  resolvedImage: partnerImage,
+                });
+              }
 
               return (
                 <Card className="partner-card" mode="shadow" key={String(partner.id ?? `${partnerName}-${index}`)}>
