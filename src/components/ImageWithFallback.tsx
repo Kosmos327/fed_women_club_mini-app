@@ -7,7 +7,6 @@ type ImageWithFallbackProps = {
   placeholderLabel: string;
   className: string;
   placeholderClassName: string;
-  compact?: boolean;
 };
 
 const isValidImageSrc = (value: string | null): value is string => {
@@ -23,7 +22,6 @@ export function ImageWithFallback({
   placeholderLabel,
   className,
   placeholderClassName,
-  compact = false,
 }: ImageWithFallbackProps) {
   const [failed, setFailed] = useState(false);
   const canRenderImage = useMemo(() => isValidImageSrc(src) && !failed, [src, failed]);
@@ -32,7 +30,6 @@ export function ImageWithFallback({
     return (
       <div className={placeholderClassName}>
         <Text weight="2">{placeholderLabel}</Text>
-        {!compact ? <Text className="state-note">Партнёр клуба</Text> : null}
       </div>
     );
   }

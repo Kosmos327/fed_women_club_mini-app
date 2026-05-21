@@ -93,7 +93,6 @@ export function PartnerPage({
               className="partner-hero__image"
               placeholderClassName="partner-hero__placeholder"
               placeholderLabel={selectedPartner?.category ?? 'Партнёр клуба'}
-              compact
             />
             <Div>
               <Title level="1" weight="1">{partnerName}</Title>

@@ -1,7 +1,7 @@
 import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 import type { ApiPaymentRequest, ApiSubscription } from '../api/client';
-import { formatDate, formatDateTime, formatSubscriptionStatus } from '../utils/format';
+import { formatDate, formatDateTime, formatMoney, formatSubscriptionStatus } from '../utils/format';
 
 type Props = {
   onBack: () => void;
@@ -32,7 +32,7 @@ export function SubscriptionPage({
   const expiresAt = subscription?.expires_at ?? subscription?.end_date ?? null;
   const isSubscriptionActive = Boolean(subscription?.is_active ?? subscription?.active);
   const subscriptionStatus = formatSubscriptionStatus(subscription?.status as string | undefined, isSubscriptionActive);
-  const subscriptionPrice = subscription?.price ?? subscription?.amount ?? '349 ₽';
+  const subscriptionPrice = formatMoney(subscription?.price ?? subscription?.amount ?? 349);
   const paymentId = paymentRequest?.id;
 
   return (
@@ -46,7 +46,7 @@ export function SubscriptionPage({
               <Spacing size={12} />
               <Text>Дата окончания: {formatDate(expiresAt)}</Text>
               <Spacing size={8} />
-              <Text className="subscription-card__price">{String(subscriptionPrice)}</Text>
+              <Text className="subscription-card__price">{subscriptionPrice} / месяц</Text>
               <Spacing size={16} />
               <Button className="bloom-button-primary" size="l" stretched onClick={onCreatePaymentRequest} loading={isCreatingPaymentRequest}>
                 Оформить / Продлить
@@ -63,7 +63,7 @@ export function SubscriptionPage({
               <Div>
                 <Title level="3" weight="2">Заявка на оплату создана</Title>
                 <Spacing size={12} />
-                <Text>Сумма: {String(paymentRequest.amount ?? paymentRequest.price ?? '—')}</Text>
+                <Text>Сумма: {formatMoney(paymentRequest.amount ?? paymentRequest.price)}</Text>
                 <Spacing size={8} />
                 <Text>Статус: {formatSubscriptionStatus(paymentRequest.status)}</Text>
                 <Spacing size={8} />

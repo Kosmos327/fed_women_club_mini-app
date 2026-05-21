@@ -15,6 +15,7 @@
 }
 
 body {
+  min-height: 100dvh;
   color: var(--bloom-text);
   background: radial-gradient(circle at 8% 10%, rgba(255, 214, 210, 0.56), transparent 36%),
     radial-gradient(circle at 100% 6%, rgba(244, 217, 213, 0.5), transparent 42%),
@@ -23,8 +24,19 @@ body {
 
 .bloom-app {
   position: relative;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: transparent;
+}
+
+#root,
+.vkui,
+.vkui__root,
+.vkuiAppRoot,
+.vkuiSplitLayout,
+.vkuiSplitCol,
+.vkuiPanel {
+  min-height: 100dvh;
+  background: transparent !important;
 }
 
 .bloom-app::before,
@@ -41,14 +53,14 @@ body {
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-  opacity: 0.17;
+  opacity: 0.44;
 }
 
 .bloom-app::after {
   background:
-    radial-gradient(circle at 8% 10%, rgba(255, 214, 210, 0.32), transparent 36%),
-    radial-gradient(circle at 100% 6%, rgba(244, 217, 213, 0.3), transparent 42%),
-    linear-gradient(165deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.36) 100%);
+    radial-gradient(circle at 8% 10%, rgba(255, 214, 210, 0.08), transparent 36%),
+    radial-gradient(circle at 100% 6%, rgba(244, 217, 213, 0.06), transparent 42%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.1) 100%);
 }
 
 .bloom-content,
