@@ -70,3 +70,37 @@ export function formatMoney(value: string | number | null | undefined, suffix = 
 
   return `${Math.round(normalized).toLocaleString('ru-RU')} ${suffix}`;
 }
+
+
+export function normalizePartnerCategoryName(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const normalized = value.trim();
+    return normalized.length > 0 ? normalized : null;
+  }
+
+  if (value && typeof value === 'object') {
+    const categoryObject = value as Record<string, unknown>;
+    for (const key of ['name', 'title', 'slug']) {
+      const candidate = categoryObject[key];
+      if (typeof candidate === 'string' && candidate.trim().length > 0) {
+        return candidate.trim();
+      }
+    }
+  }
+
+  return null;
+}
+
+export function getPartnerCategoryName(partner: {
+  category?: unknown;
+  category_name?: unknown;
+  service_category?: unknown;
+  type?: unknown;
+}): string | null {
+  return (
+    normalizePartnerCategoryName(partner.category) ??
+    normalizePartnerCategoryName(partner.category_name) ??
+    normalizePartnerCategoryName(partner.service_category) ??
+    normalizePartnerCategoryName(partner.type)
+  );
+}
