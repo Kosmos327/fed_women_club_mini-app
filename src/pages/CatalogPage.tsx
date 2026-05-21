@@ -1,6 +1,7 @@
 import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
 import { AppShell } from '../components/AppShell';
 import { EmptyState } from '../components/EmptyState';
+import { ImageWithFallback } from '../components/ImageWithFallback';
 import type { ApiPartner } from '../api/client';
 
 type CatalogPageProps = {
@@ -41,13 +42,13 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
 
               return (
                 <Card className="partner-card" mode="shadow" key={String(partner.id ?? `${partnerName}-${index}`)}>
-                  {partnerImage ? (
-                    <img className="partner-card__image" src={partnerImage} alt={partnerName} loading="lazy" />
-                  ) : (
-                    <div className="partner-card__placeholder">
-                      <Text weight="2">{categoryLabel}</Text>
-                    </div>
-                  )}
+                  <ImageWithFallback
+                    src={partnerImage}
+                    alt={partnerName}
+                    className="partner-card__image"
+                    placeholderClassName="partner-card__placeholder"
+                    placeholderLabel={categoryLabel}
+                  />
                   <Div>
                     <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
                     <div className="partner-badges">
@@ -58,14 +59,14 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                     {partnerDescription ? <Text className="partner-card__description">{partnerDescription}</Text> : null}
                     {partnerBenefit ? <Text className="partner-card__benefit">{partnerBenefit}</Text> : null}
                     <Spacing size={12} />
-                    <Button className="partner-card__button" stretched size="m" onClick={() => onPartnerClick(partner)}>Подробнее</Button>
+                    <Button className="bloom-button-secondary partner-card__button" stretched size="m" onClick={() => onPartnerClick(partner)}>Подробнее</Button>
                   </Div>
                 </Card>
               );
             })}
           </Div>
         )}
-        <Div><Button mode="secondary" onClick={onBack}>Назад</Button></Div>
+        <Div><Button className="bloom-button-muted" mode="secondary" onClick={onBack}>Назад</Button></Div>
       </Group>
     </AppShell>
   );

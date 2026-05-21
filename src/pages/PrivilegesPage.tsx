@@ -24,11 +24,11 @@ export function PrivilegesPage({ onBack, verifications }: PrivilegesPageProps) {
               const usedAt = formatDateTime(item.used_at);
 
               return (
-                <Card key={String(item.id ?? item.code ?? index)}>
+                <Card className={`privilege-card ${String(item.status).toLowerCase().includes("expire") ? "privilege-card--expired" : "privilege-card--active"}`} key={String(item.id ?? item.code ?? index)}>
                   <Div>
-                    {item.code ? <Title level="3">Код: {item.code}</Title> : null}
+                    {item.code ? <Title className="privilege-card__code" level="2">{item.code}</Title> : null}
                     {partnerLabel ? <Text>Партнёр: {partnerLabel}</Text> : null}
-                    <Text>Статус: {formatVerificationStatus(item.status)}</Text>
+                    <Text>Статус: <span className={`bloom-badge ${String(item.status).toLowerCase().includes("expire") ? "bloom-badge--expired" : "bloom-badge--success"}`}>{formatVerificationStatus(item.status)}</span></Text>
                     {expiresAt !== '—' ? <Text>Действует до: {expiresAt}</Text> : null}
                     {usedAt !== '—' ? <Text>Использована: {usedAt}</Text> : null}
                   </Div>
@@ -38,7 +38,7 @@ export function PrivilegesPage({ onBack, verifications }: PrivilegesPageProps) {
           </Div>
         )}
         <Spacing size={8} />
-        <Div><Button onClick={onBack}>На главную</Button></Div>
+        <Div><Button className="bloom-button-secondary" mode="secondary" onClick={onBack}>На главную</Button></Div>
       </Group>
     </AppShell>
   );

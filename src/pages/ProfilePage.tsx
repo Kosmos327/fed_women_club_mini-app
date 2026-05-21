@@ -81,7 +81,7 @@ export function ProfilePage({
     <AppShell title="Профиль">
       <Group className="fade-up">
         <Header>Данные участницы</Header>
-        <Card mode="shadow">
+        <Card mode="shadow" className="profile-card">
           <Div>
             <Title level="2" weight="2">Редактирование профиля</Title>
             <Spacing size={8} />
@@ -128,11 +128,11 @@ export function ProfilePage({
           {!!saveSuccessMessage && <Div><Text>{saveSuccessMessage}</Text></Div>}
 
           <Div>
-            <Button size="l" stretched onClick={handleSubmit} loading={isSaving} disabled={isSaving}>
+            <Button className="bloom-button-primary" size="l" stretched onClick={handleSubmit} loading={isSaving} disabled={isSaving}>
               Сохранить
             </Button>
             <Spacing size={8} />
-            <Button size="l" stretched mode="secondary" onClick={onBack} disabled={isSaving}>
+            <Button className="bloom-button-secondary" size="l" stretched mode="secondary" onClick={onBack} disabled={isSaving}>
               На главную
             </Button>
           </Div>
