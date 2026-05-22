@@ -770,3 +770,46 @@ body.gallery-modal-open {
 
 .gallery-modal__nav--prev { left: 10px; }
 .gallery-modal__nav--next { right: 10px; }
+
+.savings-summary-card {
+  padding: 16px;
+}
+
+.savings-total {
+  font-size: 34px;
+  line-height: 1.1;
+  color: var(--bloom-primary-dark);
+}
+
+.savings-filters {
+  padding: 16px;
+}
+
+.savings-filter-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.savings-history {
+  display: grid;
+  gap: 12px;
+}
+
+.savings-history-card {
+  padding: 14px;
+}
+
+.savings-history-card__meta {
+  color: var(--bloom-muted);
+}
+
+.savings-history-card__money {
+  display: grid;
+  gap: 6px;
+}
+
+.savings-saving-amount {
+  color: var(--bloom-primary-dark);
+  font-weight: 600;
+}

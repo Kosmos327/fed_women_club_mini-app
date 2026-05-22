@@ -12,6 +12,7 @@ type HomePageProps = {
   onPrivileges: () => void;
   onSubscription: () => void;
   onProfile: () => void;
+  onSavings: () => void;
 };
 
 export function HomePage({
@@ -23,6 +24,7 @@ export function HomePage({
   onPrivileges,
   onSubscription,
   onProfile,
+  onSavings,
 }: HomePageProps) {
   const pickFirstText = (values: unknown[], fallback: string) => {
     const found = values.find((value) => typeof value === 'string' && value.trim().length > 0);
@@ -81,6 +83,9 @@ export function HomePage({
           <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onSubscription}>Подписка</Button>
           <Spacing size={12} />
           <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onProfile}>Профиль</Button>
+          <Spacing size={12} />
+          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onSavings}>Моя экономия</Button>
+          <Text className="state-note">Сколько вы уже сэкономили с клубом</Text>
         </Div>
       </Group>
     </AppShell>
