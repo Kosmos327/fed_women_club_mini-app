@@ -125,6 +125,32 @@ export type ApiOffer = {
 } & Record<string, unknown>;
 
 
+
+export type ApiSavingsMoneyValue = number | string | null;
+
+export type ApiSavingsItem = {
+  id?: number | string;
+  used_at?: string | null;
+  partner_id?: number | string;
+  partner_name?: string | null;
+  offer_id?: number | string;
+  offer_title?: string | null;
+  base_price?: ApiSavingsMoneyValue;
+  final_price?: ApiSavingsMoneyValue;
+  discount_percent?: ApiSavingsMoneyValue;
+  saving_amount?: ApiSavingsMoneyValue;
+} & Record<string, unknown>;
+
+export type ApiSavingsResponse = {
+  total_saving_amount: ApiSavingsMoneyValue;
+  currency: string;
+  period: {
+    from_date: string | null;
+    to_date: string | null;
+  };
+  items: ApiSavingsItem[];
+} & Record<string, unknown>;
+
 export type ApiClientUpdatePayload = {
   full_name?: string;
   phone?: string;
@@ -226,6 +252,17 @@ export async function createVerification<T = ApiVerification>(
     method: 'POST',
     body: payload ? JSON.stringify(payload) : undefined,
   });
+}
+
+
+export async function getSavings<T = ApiSavingsResponse>(
+  params?: { from_date?: string; to_date?: string },
+): Promise<T> {
+  const query = new URLSearchParams();
+  if (params?.from_date) query.set('from_date', params.from_date);
+  if (params?.to_date) query.set('to_date', params.to_date);
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+  return apiFetch<T>(`/api/v1/clients/me/savings${suffix}`);
 }
 
 export async function createPaymentRequest<T = ApiPaymentRequest>(): Promise<T> {

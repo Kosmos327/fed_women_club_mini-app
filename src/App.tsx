@@ -9,6 +9,7 @@ import {
   getVerifications,
   getPartnerOffers,
   getSubscription,
+  getSavings,
   createVerification,
   createPaymentRequest,
   markPaymentRequestPaid,
@@ -23,6 +24,7 @@ import {
   type ApiOffer,
   type ApiUser,
   type ApiVerification,
+  type ApiSavingsResponse,
   type ApiClientUpdatePayload,
   type MiniAppLoginSuccess,
 } from './api/client';
@@ -34,9 +36,10 @@ import { PartnerPage } from './pages/PartnerPage';
 import { PrivilegesPage } from './pages/PrivilegesPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { SavingsPage } from './pages/SavingsPage';
 
 type AuthState = 'loading' | 'ready' | 'join_required' | 'no_launch_params' | 'error';
-type Page = 'home' | 'catalog' | 'partner' | 'privileges' | 'subscription' | 'profile';
+type Page = 'home' | 'catalog' | 'partner' | 'privileges' | 'subscription' | 'profile' | 'savings';
 
 type ProfileApiState = {
   user: ApiUser | null;
@@ -133,6 +136,12 @@ export default function App() {
   const [cities, setCities] = useState<ApiCity[]>([]);
   const [isCitiesLoading, setIsCitiesLoading] = useState<boolean>(false);
   const [citiesError, setCitiesError] = useState<string>('');
+  const [savingsData, setSavingsData] = useState<ApiSavingsResponse | null>(null);
+  const [isSavingsLoading, setIsSavingsLoading] = useState<boolean>(false);
+  const [savingsError, setSavingsError] = useState<string>('');
+  const [savingsFilterMode, setSavingsFilterMode] = useState<'all' | 'period'>('all');
+  const [savingsFromDate, setSavingsFromDate] = useState<string>('');
+  const [savingsToDate, setSavingsToDate] = useState<string>('');
 
   const noLaunchParamsMessage = 'Откройте приложение внутри VK';
 
@@ -330,6 +339,63 @@ export default function App() {
     }
   };
 
+
+  const loadSavings = async (params?: { from_date?: string; to_date?: string }) => {
+    setIsSavingsLoading(true);
+    setSavingsError('');
+
+    try {
+      const data = await getSavings<ApiSavingsResponse>(params);
+      setSavingsData(data ?? null);
+    } catch {
+      setSavingsData(null);
+      setSavingsError('Не удалось загрузить экономию. Попробуйте позже.');
+    } finally {
+      setIsSavingsLoading(false);
+    }
+  };
+
+  const openSavingsPage = async () => {
+    setPage('savings');
+    setSavingsFilterMode('all');
+    setSavingsFromDate('');
+    setSavingsToDate('');
+    await loadSavings();
+  };
+
+  const handleSavingsSelectAll = async () => {
+    setSavingsFilterMode('all');
+    setSavingsFromDate('');
+    setSavingsToDate('');
+    await loadSavings();
+  };
+
+  const handleSavingsApplyPeriod = async () => {
+    if (!savingsFromDate && !savingsToDate) {
+      setSavingsFilterMode('all');
+      await loadSavings();
+      return;
+    }
+
+    if (savingsFromDate && savingsToDate && savingsFromDate > savingsToDate) {
+      setSavingsError('Дата начала не может быть позже даты окончания');
+      return;
+    }
+
+    setSavingsFilterMode('period');
+    await loadSavings({
+      ...(savingsFromDate ? { from_date: savingsFromDate } : {}),
+      ...(savingsToDate ? { to_date: savingsToDate } : {}),
+    });
+  };
+
+  const handleSavingsResetPeriod = async () => {
+    setSavingsFromDate('');
+    setSavingsToDate('');
+    setSavingsFilterMode('all');
+    await loadSavings();
+  };
+
   const handleProfileBack = async () => {
     try {
       await refreshProfile();
@@ -422,6 +488,30 @@ export default function App() {
         />
       );
     }
+
+    if (page === 'savings') {
+      return (
+        <SavingsPage
+          onBack={() => setPage('home')}
+          data={savingsData}
+          isLoading={isSavingsLoading}
+          error={savingsError}
+          filterMode={savingsFilterMode}
+          fromDate={savingsFromDate}
+          toDate={savingsToDate}
+          onSelectAll={handleSavingsSelectAll}
+          onSelectPeriod={() => {
+            setSavingsFilterMode('period');
+            setSavingsError('');
+          }}
+          onFromDateChange={setSavingsFromDate}
+          onToDateChange={setSavingsToDate}
+          onApplyPeriod={handleSavingsApplyPeriod}
+          onResetPeriod={handleSavingsResetPeriod}
+        />
+      );
+    }
+
     if (page === 'profile') {
       return (
         <ProfilePage
@@ -449,6 +539,7 @@ export default function App() {
         onPrivileges={openPrivilegesPage}
         onSubscription={openSubscriptionPage}
         onProfile={openProfilePage}
+        onSavings={openSavingsPage}
       />
     );
   }, [
@@ -488,6 +579,12 @@ export default function App() {
     cities,
     isCitiesLoading,
     citiesError,
+    savingsData,
+    isSavingsLoading,
+    savingsError,
+    savingsFilterMode,
+    savingsFromDate,
+    savingsToDate,
   ]);
 
   return content;

@@ -60,13 +60,13 @@ export function formatVerificationStatus(status?: string | null): string {
 }
 
 export function formatMoney(value: string | number | null | undefined, suffix = '₽'): string {
-  if (value == null) return `— ${suffix}`;
+  if (value == null) return '—';
 
   const normalized = typeof value === 'number'
     ? value
     : Number(String(value).replace(',', '.').replace(/\s+/g, ''));
 
-  if (!Number.isFinite(normalized)) return `— ${suffix}`;
+  if (!Number.isFinite(normalized)) return '—';
 
   return `${Math.round(normalized).toLocaleString('ru-RU')} ${suffix}`;
 }
