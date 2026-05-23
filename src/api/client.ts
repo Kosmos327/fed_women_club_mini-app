@@ -105,10 +105,15 @@ export type ApiOffer = {
   description?: string;
   terms?: string;
   base_price?: number | string | null;
+  regular_price?: number | string | null;
+  old_price?: number | string | null;
   price?: number | string | null;
   discount_percent?: number | string | null;
   discount?: number | string | null;
   final_price?: number | string | null;
+  member_price?: number | string | null;
+  club_price?: number | string | null;
+  discounted_price?: number | string | null;
   price_with_discount?: number | string | null;
   is_active?: boolean;
   status?: string;

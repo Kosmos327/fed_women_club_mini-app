@@ -6,6 +6,7 @@ import { formatDateTime, formatVerificationStatus, getPartnerCategoryName } from
 import { getPartnerImages } from '../utils/partnerImage';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getOfferImages } from '../utils/offerImage';
+import { getOfferPricingView } from '../utils/offerPricing';
 import { PhotoGalleryModal } from '../components/PhotoGalleryModal';
 
 type PartnerPageProps = {
@@ -21,28 +22,6 @@ type PartnerPageProps = {
   createVerificationError: string;
   onOpenPrivileges: () => void;
 };
-
-const toNumber = (value: unknown): number | null => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string') {
-    const normalized = Number(value.replace(',', '.').replace(/\s+/g, ''));
-    return Number.isFinite(normalized) ? normalized : null;
-  }
-  return null;
-};
-
-const formatRubles = (value: number | null): string => (value == null ? '—' : `${Math.round(value).toLocaleString('ru-RU')} ₽`);
-
-const resolveOfferPricing = (offer: ApiOffer) => {
-  const basePrice = toNumber(offer.base_price ?? offer.price);
-  const discountPercent = toNumber(offer.discount_percent ?? offer.discount);
-  const explicitFinalPrice = toNumber(offer.final_price ?? offer.price_with_discount);
-  const computedFinalPrice =
-    explicitFinalPrice ?? (basePrice != null && discountPercent != null ? basePrice * (1 - discountPercent / 100) : null);
-
-  return { basePrice, discountPercent, finalPrice: computedFinalPrice };
-};
-
 
 const getVerificationOfferLabel = (verification: ApiVerification | null, offers: ApiOffer[], selectedOfferId: string): string => {
   if (!verification) return '';
@@ -138,7 +117,7 @@ export function PartnerPage({
             const offerId = offer?.id != null ? String(offer.id) : '';
             const offerName = offer.name ?? offer.title ?? `Услуга ${index + 1}`;
             const offerDescription = offer.short_benefit ?? offer.description;
-            const { basePrice, discountPercent, finalPrice } = resolveOfferPricing(offer);
+            const pricingView = getOfferPricingView(offer);
             const isCurrentOfferLoading = isCreatingVerification && selectedOfferIdForVerification === offerId;
             const offerImages = getOfferImages(offer);
             const hasOfferImages = offerImages.length > 0;
@@ -148,14 +127,23 @@ export function PartnerPage({
                 <Card className="offer-card offer-card--compact" mode="shadow">
                   <Div>
                     <Title className="offer-card__title" level="2" weight="2">{offerName}</Title>
-                    {discountPercent != null ? <span className="offer-card__badge">Скидка {discountPercent}%</span> : null}
                     {offerDescription ? <Text className="offer-card__description">{offerDescription}</Text> : null}
                     {offer.terms ? <Text className="offer-card__terms">Условия: {String(offer.terms)}</Text> : null}
 
-                    <div className="offer-card__prices">
-                      <Text>Цена без скидки: {formatRubles(basePrice)}</Text>
-                      <Text>Скидка: {discountPercent != null ? `${discountPercent}%` : '—'}</Text>
-                      <Text className="offer-card__member-price" weight="2">Цена для участницы: <strong>{formatRubles(finalPrice)}</strong></Text>
+                    <div className="offer-pricing">
+                      <div className="offer-pricing__row">
+                        <Text className="offer-pricing__label">Обычная цена</Text>
+                        <Text className="offer-pricing__value offer-pricing__value--base">{pricingView.basePriceLabel}</Text>
+                      </div>
+                      <div className="offer-pricing__row">
+                        <Text className="offer-pricing__label">Для участниц клуба</Text>
+                        <Text className="offer-pricing__value offer-pricing__value--member" weight="2">{pricingView.memberPriceLabel}</Text>
+                      </div>
+                      {pricingView.hasSaving ? (
+                        <div className="offer-pricing__saving">Выгода {pricingView.savingLabel}</div>
+                      ) : (
+                        <Text className="offer-pricing__fallback">Уточните стоимость у партнёра перед визитом.</Text>
+                      )}
                     </div>
 
                     <Spacing size={12} />
