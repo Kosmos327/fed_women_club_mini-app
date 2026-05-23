@@ -144,8 +144,8 @@ export function PartnerPage({
             const hasOfferImages = offerImages.length > 0;
 
             return (
-              <Div key={offerId || `offer-${index}`}>
-                <Card className="offer-card" mode="shadow">
+              <Div key={offerId || `offer-${index}`} className="offer-card-wrap">
+                <Card className="offer-card offer-card--compact" mode="shadow">
                   <Div>
                     <Title className="offer-card__title" level="2" weight="2">{offerName}</Title>
                     {discountPercent != null ? <span className="offer-card__badge">Скидка {discountPercent}%</span> : null}

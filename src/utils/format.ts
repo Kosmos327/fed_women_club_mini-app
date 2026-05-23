@@ -104,3 +104,36 @@ export function getPartnerCategoryName(partner: {
     normalizePartnerCategoryName(partner.type)
   );
 }
+
+export function getPartnerCategoryNames(partner: {
+  category?: unknown;
+  category_name?: unknown;
+  service_category?: unknown;
+  type?: unknown;
+}): string[] {
+  const values = [partner.category, partner.category_name, partner.service_category, partner.type];
+  const names = new Set<string>();
+
+  values.forEach((value) => {
+    if (Array.isArray(value)) {
+      value.forEach((entry) => {
+        const normalized = normalizePartnerCategoryName(entry);
+        if (normalized) names.add(normalized);
+      });
+      return;
+    }
+
+    if (typeof value === 'string' && /[,/|]/.test(value)) {
+      value.split(/[,/|]/).forEach((chunk) => {
+        const normalized = normalizePartnerCategoryName(chunk);
+        if (normalized) names.add(normalized);
+      });
+      return;
+    }
+
+    const normalized = normalizePartnerCategoryName(value);
+    if (normalized) names.add(normalized);
+  });
+
+  return Array.from(names);
+}
