@@ -3,6 +3,13 @@ import { AppShell } from '../components/AppShell';
 import type { ApiClient, ApiSubscription, ApiUser } from '../api/client';
 import { formatDate, formatSubscriptionStatus } from '../utils/format';
 
+const formatRub = (value: unknown): string => {
+  if (value == null) return '—';
+  const numeric = typeof value === 'number' ? value : Number(String(value).replace(',', '.').replace(/\s+/g, ''));
+  if (!Number.isFinite(numeric)) return '—';
+  return `${Math.round(numeric).toLocaleString('ru-RU')} ₽`;
+};
+
 type HomePageProps = {
   userName?: string;
   user?: ApiUser | null;
@@ -57,6 +64,8 @@ export function HomePage({
   const isSubscriptionActive = Boolean(subscription?.is_active ?? subscription?.active);
   const subscriptionStatus = formatSubscriptionStatus(subscription?.status as string | undefined, isSubscriptionActive);
   const subscriptionExpiresAt = subscription?.expires_at ?? subscription?.end_date;
+  const totalSavingsRaw = (client as Record<string, unknown> | null)?.total_saving_amount
+    ?? (client as Record<string, unknown> | null)?.saving_amount;
 
   return (
     <AppShell title="Мой клуб" titleClassName="bloom-panel-header-title-glass">
@@ -75,17 +84,17 @@ export function HomePage({
             </>
           ) : null}
         </Div>
+        <Div className="home-value-widget glass-panel" role="button" tabIndex={0} onClick={onSavings} onKeyDown={(e) => e.key === 'Enter' ? onSavings() : null}>
+          <Text className="home-value-widget__label">Вы уже сэкономили</Text>
+          <Text className="home-value-widget__amount" weight="1">{formatRub(totalSavingsRaw)}</Text>
+          <Text className="state-note">Сумма экономии по вашим использованным привилегиям.</Text>
+        </Div>
         <Div className="bloom-nav-grid">
           <Button className="bloom-button-primary" stretched size="l" onClick={onCatalog}>Партнёры</Button>
-          <Spacing size={12} />
-          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onPrivileges}>Мои привилегии</Button>
-          <Spacing size={12} />
-          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onSubscription}>Подписка</Button>
-          <Spacing size={12} />
-          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onProfile}>Профиль</Button>
-          <Spacing size={12} />
           <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onSavings}>Моя экономия</Button>
-          <Text className="state-note">Сколько вы уже сэкономили с клубом</Text>
+          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onPrivileges}>Мои привилегии</Button>
+          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onSubscription}>Подписка</Button>
+          <Button stretched size="l" className="bloom-button-secondary" mode="secondary" onClick={onProfile}>Профиль</Button>
         </Div>
       </Group>
     </AppShell>

@@ -5,7 +5,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getPartnerImageSrc } from '../utils/partnerImage';
 import type { ApiPartner } from '../api/client';
-import { getPartnerCategoryName } from '../utils/format';
+import { getPartnerCategoryName, getPartnerCategoryNames } from '../utils/format';
 
 type CatalogPageProps = {
   partners: ApiPartner[];
@@ -16,12 +16,17 @@ type CatalogPageProps = {
 
 export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
   const [activeCategory, setActiveCategory] = useState('Все');
-  const categories = useMemo(
-    () => ['Все', ...Array.from(new Set(partners.map(getPartnerCategoryName).filter((value): value is string => Boolean(value))))],
-    [partners],
-  );
+  const categories = useMemo(() => {
+    const categorySet = new Set<string>();
+    partners.forEach((partner) => {
+      getPartnerCategoryNames(partner).forEach((category) => categorySet.add(category));
+    });
+    return ['Все', ...Array.from(categorySet)];
+  }, [partners]);
   const filteredPartners = useMemo(
-    () => (activeCategory === 'Все' ? partners : partners.filter((partner) => getPartnerCategoryName(partner) === activeCategory)),
+    () => (activeCategory === 'Все'
+      ? partners
+      : partners.filter((partner) => getPartnerCategoryNames(partner).includes(activeCategory))),
     [activeCategory, partners],
   );
 
