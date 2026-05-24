@@ -216,9 +216,14 @@ export default function App() {
     try {
       const data = await getPartners<ApiPartner[]>();
       setPartners(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (error) {
+      const detail = parseApiErrorDetail(error).toLowerCase();
       setPartners([]);
-      setPartnersError('Не удалось загрузить партнёров. Попробуйте обновить приложение.');
+      if (detail.includes('401') || detail.includes('unauthorized') || detail.includes('not authenticated')) {
+        setPartnersError('Сессия истекла. Перезапустите мини-приложение внутри VK, чтобы снова войти.');
+      } else {
+        setPartnersError('Не удалось загрузить партнёров. Попробуйте обновить приложение.');
+      }
     } finally {
       setIsPartnersLoading(false);
     }

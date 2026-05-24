@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const RAW_API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL ?? '').trim();
+const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, '');
 const ACCESS_TOKEN_KEY = 'bloomclub_access_token';
 
 let accessToken: string | null = localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -196,7 +197,8 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
     ...options,
     headers,
   });
@@ -210,50 +212,50 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
 }
 
 export async function miniAppLogin(launchParams: string): Promise<MiniAppLoginResponse> {
-  return apiFetch<MiniAppLoginResponse>('/api/v1/auth/vk-miniapp-login', {
+  return apiFetch<MiniAppLoginResponse>('/auth/vk-miniapp-login', {
     method: 'POST',
     body: JSON.stringify({ launch_params: launchParams }),
   });
 }
 
 export async function getMe<T = { user?: ApiUser; client?: ApiClient } & Record<string, unknown>>(): Promise<T> {
-  return apiFetch<T>('/api/v1/clients/me');
+  return apiFetch<T>('/clients/me');
 }
 
 export async function updateMe<T = { user?: ApiUser; client?: ApiClient } & Record<string, unknown>>(
   payload: ApiClientUpdatePayload,
 ): Promise<T> {
-  return apiFetch<T>('/api/v1/clients/me', {
+  return apiFetch<T>('/clients/me', {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
 }
 
 export async function getSubscription<T = ApiSubscription>(): Promise<T> {
-  return apiFetch<T>('/api/v1/clients/me/subscription');
+  return apiFetch<T>('/clients/me/subscription');
 }
 
 export async function getCities<T = ApiCity[]>(): Promise<T> {
-  return apiFetch<T>('/api/v1/clients/cities');
+  return apiFetch<T>('/clients/cities');
 }
 
 export async function getPartners<T = ApiPartner[]>(): Promise<T> {
-  return apiFetch<T>('/api/v1/clients/catalog/partners');
+  return apiFetch<T>('/clients/catalog/partners');
 }
 
 export async function getVerifications<T = ApiVerification[]>(): Promise<T> {
-  return apiFetch<T>('/api/v1/clients/me/verifications');
+  return apiFetch<T>('/clients/me/verifications');
 }
 
 export async function getPartnerOffers<T = ApiOffer[]>(partnerId: string): Promise<T> {
-  return apiFetch<T>(`/api/v1/clients/partners/${partnerId}/offers`);
+  return apiFetch<T>(`/clients/partners/${partnerId}/offers`);
 }
 
 export async function createVerification<T = ApiVerification>(
   partnerId: string,
   payload?: { offer_id?: string | number },
 ): Promise<T> {
-  return apiFetch<T>(`/api/v1/clients/partners/${partnerId}/verify`, {
+  return apiFetch<T>(`/clients/partners/${partnerId}/verify`, {
     method: 'POST',
     body: payload ? JSON.stringify(payload) : undefined,
   });
@@ -267,17 +269,17 @@ export async function getSavings<T = ApiSavingsResponse>(
   if (params?.from_date) query.set('from_date', params.from_date);
   if (params?.to_date) query.set('to_date', params.to_date);
   const suffix = query.toString() ? `?${query.toString()}` : '';
-  return apiFetch<T>(`/api/v1/clients/me/savings${suffix}`);
+  return apiFetch<T>(`/clients/me/savings${suffix}`);
 }
 
 export async function createPaymentRequest<T = ApiPaymentRequest>(): Promise<T> {
-  return apiFetch<T>('/api/v1/clients/me/payment-requests', {
+  return apiFetch<T>('/clients/me/payment-requests', {
     method: 'POST',
   });
 }
 
 export async function markPaymentRequestPaid<T = ApiPaymentRequest>(paymentRequestId: string | number): Promise<T> {
-  return apiFetch<T>(`/api/v1/clients/me/payment-requests/${paymentRequestId}/mark-paid`, {
+  return apiFetch<T>(`/clients/me/payment-requests/${paymentRequestId}/mark-paid`, {
     method: 'POST',
   });
 }

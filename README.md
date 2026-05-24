@@ -23,12 +23,12 @@ npm run dev
 Создайте `.env` (например, на основе `.env.example`) и укажите:
 
 ```env
-VITE_API_BASE_URL=https://bloomclub.ru
+VITE_API_BASE_URL=https://bloomclub.ru/api/v1
 VITE_VK_APP_ID=54600832
 VITE_VK_BOT_URL=https://vk.com/club_or_bot_link_here
 ```
 
-- `VITE_API_BASE_URL` — базовый URL backend API.
+- `VITE_API_BASE_URL` — базовый URL backend API (с префиксом `/api/v1`).
 - `VITE_VK_APP_ID` — ID VK Mini App.
 - `VITE_VK_BOT_URL` — ссылка на бота/сообщество для сценария join via bot.
 

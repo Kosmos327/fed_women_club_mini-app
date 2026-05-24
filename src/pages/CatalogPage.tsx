@@ -5,7 +5,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getPartnerImageSrc } from '../utils/partnerImage';
 import type { ApiPartner } from '../api/client';
-import { getPartnerCategoryName, getPartnerCategoryNames } from '../utils/format';
+import { getPartnerCategoryName, getPartnerCategoryNames, getPartnerCategorySlugs } from '../utils/format';
 
 type CatalogPageProps = {
   partners: ApiPartner[];
@@ -15,18 +15,22 @@ type CatalogPageProps = {
 
 
 export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
-  const [activeCategory, setActiveCategory] = useState('Все');
+  const [activeCategory, setActiveCategory] = useState('all');
   const categories = useMemo(() => {
     const categorySet = new Set<string>();
     partners.forEach((partner) => {
       getPartnerCategoryNames(partner).forEach((category) => categorySet.add(category));
     });
-    return ['Все', ...Array.from(categorySet)];
+    return ['all', ...Array.from(categorySet)];
   }, [partners]);
   const filteredPartners = useMemo(
-    () => (activeCategory === 'Все'
+    () => (activeCategory === 'all'
       ? partners
-      : partners.filter((partner) => getPartnerCategoryNames(partner).includes(activeCategory))),
+      : partners.filter((partner) => {
+        const categoryNames = getPartnerCategoryNames(partner);
+        const categorySlugs = getPartnerCategorySlugs(partner);
+        return categoryNames.includes(activeCategory) || categorySlugs.includes(activeCategory);
+      })),
     [activeCategory, partners],
   );
 
@@ -44,6 +48,7 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
           }
         : null,
       computedCategories: categories,
+      firstPartnerCategorySlugs: firstPartner ? getPartnerCategorySlugs(firstPartner) : [],
     });
   }
 
@@ -58,12 +63,12 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
             <Div className="catalog-filters glass-panel">
               {categories.map((category) => (
                 <button
-                  key={category}
+                  key={category === 'all' ? 'Все' : category}
                   type="button"
                   className={`catalog-filter-chip ${activeCategory === category ? 'catalog-filter-chip--active' : ''}`}
                   onClick={() => setActiveCategory(category)}
                 >
-                  {category}
+                  {category === 'all' ? 'Все' : category}
                 </button>
               ))}
             </Div>
