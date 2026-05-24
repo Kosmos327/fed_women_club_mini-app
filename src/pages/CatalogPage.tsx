@@ -1,80 +1,60 @@
-import { Button, Card, Div, Group, Spacing, Text, Title } from '@vkontakte/vkui';
-import { useMemo, useState } from 'react';
+import { Button, Card, Div, Group, Select, Spacing, Text, Title } from '@vkontakte/vkui';
+import { useMemo } from 'react';
 import { AppShell } from '../components/AppShell';
 import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getPartnerImageSrc } from '../utils/partnerImage';
-import type { ApiPartner } from '../api/client';
-import { getPartnerCategoryName, getPartnerCategoryNames, getPartnerCategorySlugs } from '../utils/format';
+import type { ApiCity, ApiPartner } from '../api/client';
+import { getPartnerCategoryName, getPartnerCategorySlugs } from '../utils/format';
 
 type CatalogPageProps = {
   partners: ApiPartner[];
+  cities: ApiCity[];
+  selectedCityId: string;
+  selectedCategorySlug: string;
+  selectedCityLabel: string;
+  isProfileCityFallback: boolean;
+  onCityChange: (cityId: string) => void;
+  onCategoryChange: (categorySlug: string) => void;
+  onResetAllFilters: () => void;
   onBack: () => void;
   onPartnerClick: (partner: ApiPartner) => void;
 };
 
-
-export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPageProps) {
-  const [activeCategory, setActiveCategory] = useState('all');
+export function CatalogPage({ partners, cities, selectedCityId, selectedCategorySlug, selectedCityLabel, isProfileCityFallback, onCityChange, onCategoryChange, onResetAllFilters, onBack, onPartnerClick }: CatalogPageProps) {
   const categories = useMemo(() => {
-    const categorySet = new Set<string>();
+    const bySlug = new Map<string, string>();
     partners.forEach((partner) => {
-      getPartnerCategoryNames(partner).forEach((category) => categorySet.add(category));
+      const slugs = getPartnerCategorySlugs(partner);
+      const label = getPartnerCategoryName(partner) ?? null;
+      slugs.forEach((slug) => {
+        if (!bySlug.has(slug)) bySlug.set(slug, label ?? slug);
+      });
     });
-    return ['all', ...Array.from(categorySet)];
+    return Array.from(bySlug.entries()).map(([slug, label]) => ({ label, value: slug }));
   }, [partners]);
-  const filteredPartners = useMemo(
-    () => (activeCategory === 'all'
-      ? partners
-      : partners.filter((partner) => {
-        const categoryNames = getPartnerCategoryNames(partner);
-        const categorySlugs = getPartnerCategorySlugs(partner);
-        return categoryNames.includes(activeCategory) || categorySlugs.includes(activeCategory);
-      })),
-    [activeCategory, partners],
-  );
-
-  if (import.meta.env.DEV) {
-    const firstPartner = partners[0];
-    console.debug('Catalog category diagnostics', {
-      partnersCount: partners.length,
-      firstPartnerKeys: firstPartner ? Object.keys(firstPartner) : [],
-      firstPartnerCategoryFields: firstPartner
-        ? {
-            category: firstPartner.category,
-            category_name: firstPartner.category_name,
-            type: firstPartner.type,
-            service_category: firstPartner.service_category,
-          }
-        : null,
-      computedCategories: categories,
-      firstPartnerCategorySlugs: firstPartner ? getPartnerCategorySlugs(firstPartner) : [],
-    });
-  }
 
   return (
     <AppShell titleClassName="bloom-panel-header-title-compact" title="Партнёры">
       <Group className="fade-up">
         <Div className="bloom-page-title-card">Партнёры</Div>
+        <Div className="catalog-filters glass-panel">
+          <Text>Город: {selectedCityLabel}</Text>
+          {isProfileCityFallback ? <Text className="state-note">Каталог показывается по городу из профиля.</Text> : null}
+          <Select value={selectedCityId} onChange={(event) => onCityChange(event.target.value)} options={cities.map((city) => ({ label: city.name, value: String(city.id) }))} placeholder="Выберите город" />
+          <Select value={selectedCategorySlug} onChange={(event) => onCategoryChange(event.target.value)} options={[{ label: 'Все категории', value: '' }, ...categories]} placeholder="Категория" />
+          <Spacing size={8} />
+          <Button mode="secondary" onClick={onResetAllFilters}>Сбросить фильтры</Button>
+        </Div>
+
         {partners.length === 0 ? (
-          <EmptyState header="Партнёров пока нет" description="В вашем городе пока нет партнёров" />
+          <EmptyState
+            header={selectedCategorySlug ? 'Партнёры не найдены в этой категории' : 'В выбранном городе пока нет партнёров'}
+            description={selectedCategorySlug ? 'В этой категории и городе партнёров пока нет. Попробуйте выбрать другую категорию или город.' : 'Попробуйте выбрать другой город или сбросить фильтры.'}
+          />
         ) : (
-          <>
-            <Div className="catalog-filters glass-panel">
-              {categories.map((category) => (
-                <button
-                  key={category === 'all' ? 'Все' : category}
-                  type="button"
-                  className={`catalog-filter-chip ${activeCategory === category ? 'catalog-filter-chip--active' : ''}`}
-                  onClick={() => setActiveCategory(category)}
-                >
-                  {category === 'all' ? 'Все' : category}
-                </button>
-              ))}
-            </Div>
-            {filteredPartners.length === 0 ? <EmptyState header="Ничего не найдено" description="Попробуйте выбрать другую категорию" /> : null}
-            <Div className="partner-catalog-grid">
-              {filteredPartners.map((partner, index) => {
+          <Div className="partner-catalog-grid">
+            {partners.map((partner, index) => {
               const partnerName = partner.name ?? partner.title ?? 'Партнёр клуба';
               const partnerCity = partner.city_name ?? partner.city;
               const partnerDescription = partner.description ?? partner.short_description;
@@ -82,24 +62,10 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
               const partnerImage = getPartnerImageSrc(partner);
               const normalizedCategory = getPartnerCategoryName(partner);
               const categoryLabel = normalizedCategory ?? 'Без категории';
-              if (import.meta.env.DEV) {
-                console.debug('Catalog partner image resolution', {
-                  partnerId: partner.id,
-                  partnerName,
-                  partnerKeys: Object.keys(partner),
-                  resolvedImage: partnerImage,
-                });
-              }
 
-                return (
+              return (
                 <Card className="partner-card" mode="shadow" key={String(partner.id ?? `${partnerName}-${index}`)}>
-                  <ImageWithFallback
-                    src={partnerImage}
-                    alt={partnerName}
-                    className="partner-card__image"
-                    placeholderClassName="partner-card__placeholder"
-                    placeholderLabel={categoryLabel}
-                  />
+                  <ImageWithFallback src={partnerImage} alt={partnerName} className="partner-card__image" placeholderClassName="partner-card__placeholder" placeholderLabel={categoryLabel} />
                   <Div>
                     <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
                     <div className="partner-badges">
@@ -114,9 +80,8 @@ export function CatalogPage({ partners, onBack, onPartnerClick }: CatalogPagePro
                   </Div>
                 </Card>
               );
-              })}
-            </Div>
-          </>
+            })}
+          </Div>
         )}
         <Div><Button className="bloom-button-muted" mode="secondary" onClick={onBack}>Назад</Button></Div>
       </Group>

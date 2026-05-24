@@ -138,42 +138,39 @@ export function getPartnerCategoryNames(partner: {
   return Array.from(names);
 }
 
-
 export function getPartnerCategorySlugs(partner: {
   category_slugs?: unknown;
   categories?: unknown;
   category_slug?: unknown;
   category?: unknown;
 }): string[] {
-  const values = [partner.category_slugs, partner.categories, partner.category_slug, partner.category];
   const slugs = new Set<string>();
+  const normalizeSlug = (value: unknown): string | null => {
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim().toLowerCase();
+    return trimmed.length > 0 ? trimmed : null;
+  };
 
-  const addSlug = (value: unknown) => {
-    if (typeof value === 'string') {
-      value
-        .split(/[,/|]/)
-        .map((chunk) => chunk.trim())
-        .filter(Boolean)
-        .forEach((chunk) => slugs.add(chunk));
+  const push = (value: unknown) => {
+    if (Array.isArray(value)) {
+      value.forEach((entry) => push(entry));
       return;
     }
 
     if (value && typeof value === 'object') {
       const obj = value as Record<string, unknown>;
-      const slug = obj.slug;
-      if (typeof slug === 'string' && slug.trim().length > 0) {
-        slugs.add(slug.trim());
-      }
-    }
-  };
-
-  values.forEach((value) => {
-    if (Array.isArray(value)) {
-      value.forEach((entry) => addSlug(entry));
+      push(obj.slug);
       return;
     }
-    addSlug(value);
-  });
+
+    const normalized = normalizeSlug(value);
+    if (normalized) slugs.add(normalized);
+  };
+
+  push(partner.category_slugs);
+  push(partner.categories);
+  push(partner.category_slug);
+  push(partner.category);
 
   return Array.from(slugs);
 }

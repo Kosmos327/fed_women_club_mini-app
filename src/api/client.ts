@@ -72,8 +72,11 @@ export type ApiPartner = {
   id?: number | string;
   name?: string;
   title?: string;
-  category?: string;
+  category?: string | Record<string, unknown>;
   category_name?: string;
+  category_slug?: string;
+  category_slugs?: string[];
+  categories?: Array<{ slug?: string; name?: string; title?: string } | Record<string, unknown>>;
   type?: string;
   service_category?: string;
   city?: string;
@@ -239,8 +242,13 @@ export async function getCities<T = ApiCity[]>(): Promise<T> {
   return apiFetch<T>('/clients/cities');
 }
 
-export async function getPartners<T = ApiPartner[]>(): Promise<T> {
-  return apiFetch<T>('/clients/catalog/partners');
+export async function getPartners<T = ApiPartner[]>(params?: { city_id?: number | string; city_slug?: string; category_slug?: string }): Promise<T> {
+  const query = new URLSearchParams();
+  if (params?.city_id != null && String(params.city_id).trim() !== '') query.set('city_id', String(params.city_id));
+  if (params?.city_slug) query.set('city_slug', params.city_slug);
+  if (params?.category_slug) query.set('category_slug', params.category_slug);
+  const suffix = query.toString() ? `?${query.toString()}` : '';
+  return apiFetch<T>(`/api/v1/clients/catalog/partners${suffix}`);
 }
 
 export async function getVerifications<T = ApiVerification[]>(): Promise<T> {
