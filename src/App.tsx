@@ -109,6 +109,8 @@ export default function App() {
   const [subscription, setSubscription] = useState<ApiSubscription | null>(null);
   const [verifications, setVerifications] = useState<ApiVerification[]>([]);
   const [partners, setPartners] = useState<ApiPartner[]>([]);
+  const [selectedCatalogCityId, setSelectedCatalogCityId] = useState<string>('');
+  const [selectedCatalogCategorySlug, setSelectedCatalogCategorySlug] = useState<string>('');
   const [selectedPartner, setSelectedPartner] = useState<ApiPartner | null>(null);
   const [isPartnersLoading, setIsPartnersLoading] = useState<boolean>(false);
   const [partnersError, setPartnersError] = useState<string>('');
@@ -208,17 +210,37 @@ export default function App() {
     }
   };
 
-  const openCatalogPage = async () => {
+  const openCatalogPage = async (params?: { cityId?: string; categorySlug?: string }) => {
     setPage('catalog');
     setIsPartnersLoading(true);
     setPartnersError('');
 
     try {
-      const data = await getPartners<ApiPartner[]>();
+      const cityId = params?.cityId ?? selectedCatalogCityId;
+      const categorySlug = params?.categorySlug ?? selectedCatalogCategorySlug;
+      const requestParams = {
+        ...(cityId ? { city_id: cityId } : {}),
+        ...(categorySlug ? { category_slug: categorySlug } : {}),
+      };
+      if (import.meta.env.DEV) {
+        console.debug('Catalog request diagnostics', {
+          apiBase: import.meta.env.VITE_API_BASE_URL,
+          endpoint: '/clients/catalog/partners',
+          requestParams,
+          selectedCityId: cityId,
+          selectedCategorySlug: categorySlug,
+        });
+      }
+      const data = await getPartners<ApiPartner[]>(requestParams);
       setPartners(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (error) {
       setPartners([]);
-      setPartnersError('Не удалось загрузить партнёров. Попробуйте обновить приложение.');
+      const errorText = error instanceof Error ? error.message : '';
+      if (errorText.includes('401')) {
+        setPartnersError('Сессия истекла. Нужно войти в клуб заново.');
+      } else {
+        setPartnersError('Не удалось загрузить партнёров. Попробуйте обновить приложение.');
+      }
     } finally {
       setIsPartnersLoading(false);
     }
@@ -419,6 +441,26 @@ export default function App() {
       return (
         <CatalogPage
           partners={partners}
+          cities={cities}
+          selectedCityId={selectedCatalogCityId}
+          selectedCategorySlug={selectedCatalogCategorySlug}
+          selectedCityLabel={selectedCatalogCityId
+            ? (cities.find((city) => String(city.id) === selectedCatalogCityId)?.name ?? 'Выбранный город')
+            : (client?.city_name ?? client?.city ?? 'город профиля')}
+          isProfileCityFallback={!selectedCatalogCityId}
+          onCityChange={(cityId) => {
+            setSelectedCatalogCityId(cityId);
+            void openCatalogPage({ cityId, categorySlug: selectedCatalogCategorySlug });
+          }}
+          onCategoryChange={(categorySlug) => {
+            setSelectedCatalogCategorySlug(categorySlug);
+            void openCatalogPage({ cityId: selectedCatalogCityId, categorySlug });
+          }}
+          onResetAllFilters={() => {
+            setSelectedCatalogCityId('');
+            setSelectedCatalogCategorySlug('');
+            void openCatalogPage({ cityId: '', categorySlug: '' });
+          }}
           onBack={() => setPage('home')}
           onPartnerClick={(partner) => {
             setSelectedPartner(partner);
