@@ -137,3 +137,43 @@ export function getPartnerCategoryNames(partner: {
 
   return Array.from(names);
 }
+
+
+export function getPartnerCategorySlugs(partner: {
+  category_slugs?: unknown;
+  categories?: unknown;
+  category_slug?: unknown;
+  category?: unknown;
+}): string[] {
+  const values = [partner.category_slugs, partner.categories, partner.category_slug, partner.category];
+  const slugs = new Set<string>();
+
+  const addSlug = (value: unknown) => {
+    if (typeof value === 'string') {
+      value
+        .split(/[,/|]/)
+        .map((chunk) => chunk.trim())
+        .filter(Boolean)
+        .forEach((chunk) => slugs.add(chunk));
+      return;
+    }
+
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      const slug = obj.slug;
+      if (typeof slug === 'string' && slug.trim().length > 0) {
+        slugs.add(slug.trim());
+      }
+    }
+  };
+
+  values.forEach((value) => {
+    if (Array.isArray(value)) {
+      value.forEach((entry) => addSlug(entry));
+      return;
+    }
+    addSlug(value);
+  });
+
+  return Array.from(slugs);
+}
