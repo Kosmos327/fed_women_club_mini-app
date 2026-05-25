@@ -169,6 +169,8 @@ export default function App() {
       return;
     }
 
+    const bootstrapStep = { current: 'auth.login' as 'auth.login' | 'clients.me' | 'clients.me.subscription' };
+
     miniAppLogin(launchParams)
       .then(async (response) => {
         if ('status' in response && response.status === 'join_via_bot_required') {
@@ -180,14 +182,25 @@ export default function App() {
         const successResponse = response as MiniAppLoginSuccess;
         setAccessToken(successResponse.access_token);
 
+        bootstrapStep.current = 'clients.me';
         const [_, subscriptionData] = await Promise.all([
           refreshProfile({ user: successResponse.user, client: successResponse.client }),
-          getSubscription(),
+          (async () => {
+            bootstrapStep.current = 'clients.me.subscription';
+            return getSubscription();
+          })(),
         ]);
         setSubscription(subscriptionData ?? null);
         setAuthState('ready');
       })
-      .catch(() => {
+      .catch((error) => {
+        if (import.meta.env.DEV) {
+          console.error('Bootstrap auth error', {
+            apiBase: import.meta.env.VITE_API_BASE_URL,
+            step: bootstrapStep.current,
+            detail: parseApiErrorDetail(error),
+          });
+        }
         clearAccessToken();
         setErrorMessage('Не удалось загрузить данные клуба. Попробуйте обновить приложение.');
         setAuthState('error');

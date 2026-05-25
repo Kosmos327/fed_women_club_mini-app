@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:api-paths": "rg -n 'apiFetch<.*\\(`/api/v1|apiFetch\\(`/api/v1|/api/v1/clients|/api/v1/auth' src"
   },
   "dependencies": {
     "@vkontakte/vk-bridge": "^2.15.9",
