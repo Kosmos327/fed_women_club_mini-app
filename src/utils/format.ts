@@ -72,6 +72,48 @@ export function formatMoney(value: string | number | null | undefined, suffix = 
 }
 
 
+
+const PARTNER_CATEGORY_LABELS: Record<string, string> = {
+  krasota: 'Красота',
+  'красота': 'Красота',
+  'manikyur-pedikyur': 'Маникюр / педикюр',
+  'brovi-resnitsy': 'Брови / ресницы',
+  kosmetologiya: 'Косметология',
+};
+
+const PARTNER_CITY_LABELS: Record<string, string> = {
+  novosibirsk: 'Новосибирск',
+  'новосибирск': 'Новосибирск',
+  cherepovets: 'Череповец',
+  'череповец': 'Череповец',
+};
+
+function toPrettyLabel(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+function normalizeLookupKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+export function formatPartnerCategoryLabel(value?: string | null): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const mapped = PARTNER_CATEGORY_LABELS[normalizeLookupKey(trimmed)];
+  return mapped ?? toPrettyLabel(trimmed);
+}
+
+export function formatPartnerCityLabel(value?: string | null): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const mapped = PARTNER_CITY_LABELS[normalizeLookupKey(trimmed)];
+  return mapped ?? toPrettyLabel(trimmed);
+}
+
 export function normalizePartnerCategoryName(value: unknown): string | null {
   if (typeof value === 'string') {
     const normalized = value.trim();
