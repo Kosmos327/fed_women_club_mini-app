@@ -91,6 +91,15 @@ export type ApiPartner = {
   city?: string;
   city_name?: string;
   address?: string;
+  phone?: string | null;
+  website_url?: string | null;
+  social_url?: string | null;
+  instagram_url?: string | null;
+  vk_url?: string | null;
+  telegram_url?: string | null;
+  whatsapp_url?: string | null;
+  map_url?: string | null;
+  working_hours?: string | null;
   description?: string;
   short_description?: string;
   discount_text?: string;

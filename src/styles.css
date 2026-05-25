@@ -875,6 +875,40 @@ body.gallery-modal-open {
   overflow-wrap: anywhere;
 }
 
+.partner-contact-card .vkuiDiv {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.partner-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.partner-link-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--bloom-border);
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--bloom-primary-dark);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.partner-card__description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .gallery-modal-overlay {
   align-items: center;
   justify-content: center;

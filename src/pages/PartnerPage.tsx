@@ -11,12 +11,7 @@ import { PhotoGalleryModal } from '../components/PhotoGalleryModal';
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
 
-function extractPrimaryLinks(text: string): { cleanedText: string; instagram: string | null; vk: string | null } {
-  const urls = Array.from(text.matchAll(URL_REGEX)).map((match) => match[0]);
-  const instagram = urls.find((url) => /(instagram\.com|instagr\.am)/i.test(url)) ?? null;
-  const vk = urls.find((url) => /(vk\.com|vkontakte\.ru)/i.test(url)) ?? null;
-  return { cleanedText: text.trim(), instagram, vk };
-}
+const CUSTOM_PROTOCOL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
 
 function linkifyText(text: string): Array<string | JSX.Element> {
   const result: Array<string | JSX.Element> = [];
@@ -34,6 +29,29 @@ function linkifyText(text: string): Array<string | JSX.Element> {
   URL_REGEX.lastIndex = 0;
   return result;
 }
+
+function cleanValue(value?: string | null): string | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeExternalUrl(value?: string | null): string | null {
+  const raw = cleanValue(value);
+  if (!raw) return null;
+  if (CUSTOM_PROTOCOL_REGEX.test(raw)) return raw;
+  if (raw.startsWith('//')) return `https:${raw}`;
+  return `https://${raw}`;
+}
+
+function buildTelUrl(phone?: string | null): string | null {
+  const raw = cleanValue(phone);
+  if (!raw) return null;
+  const telValue = raw.replace(/[^\d+]/g, '');
+  return telValue ? `tel:${telValue}` : null;
+}
+
+type PartnerLinkChip = { label: string; href: string; isExternal: boolean };
 
 type PartnerPageProps = {
   selectedPartner: ApiPartner | null;
@@ -81,7 +99,31 @@ export function PartnerPage({
   const partnerCategory = selectedPartner ? getPartnerCategoryName(selectedPartner) : null;
   const partnerImages = getPartnerImages(selectedPartner);
   const hasPartnerImage = partnerImages.length > 0;
-  const descriptionMeta = partnerDescription ? extractPrimaryLinks(partnerDescription) : null;
+  const descriptionText = cleanValue(partnerDescription);
+  const partnerAddress = cleanValue(selectedPartner?.address);
+  const mapUrl = normalizeExternalUrl(selectedPartner?.map_url);
+  const phoneUrl = buildTelUrl(selectedPartner?.phone);
+  const websiteUrl = normalizeExternalUrl(selectedPartner?.website_url);
+  const instagramUrl = normalizeExternalUrl(selectedPartner?.instagram_url);
+  const vkUrl = normalizeExternalUrl(selectedPartner?.vk_url);
+  const telegramUrl = normalizeExternalUrl(selectedPartner?.telegram_url);
+  const whatsappUrl = normalizeExternalUrl(selectedPartner?.whatsapp_url);
+  const socialUrl = normalizeExternalUrl(selectedPartner?.social_url);
+  const uniqueLinks = new Set<string>();
+  const contactLinks: PartnerLinkChip[] = [];
+  const pushLink = (label: string, href: string | null, isExternal = true) => {
+    if (!href || uniqueLinks.has(href)) return;
+    uniqueLinks.add(href);
+    contactLinks.push({ label, href, isExternal });
+  };
+  pushLink('Позвонить', phoneUrl, false);
+  pushLink('Сайт', websiteUrl);
+  pushLink('Instagram', instagramUrl);
+  pushLink('VK', vkUrl);
+  pushLink('Telegram', telegramUrl);
+  pushLink('WhatsApp', whatsappUrl);
+  pushLink('Маршрут', mapUrl);
+  pushLink('Ещё ссылка', socialUrl);
   const partnerInitial = partnerName.trim().charAt(0).toUpperCase() || 'П';
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
   const selectedOfferImages = getOfferImages(selectedOfferForGallery);
@@ -129,18 +171,39 @@ export function PartnerPage({
                   {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
                 </div>
               ) : null}
-              {selectedPartner?.address ? <Text className="partner-hero__address"><strong>Адрес:</strong> {selectedPartner.address}</Text> : null}
-              {descriptionMeta?.cleanedText ? (
+              {partnerAddress ? <Text className="partner-hero__address"><strong>Адрес:</strong> {partnerAddress}</Text> : null}
+              {descriptionText ? (
                 <Text className="partner-hero__description" style={{ whiteSpace: 'pre-line' }}>
-                  {linkifyText(descriptionMeta.cleanedText)}
+                  {linkifyText(descriptionText)}
                 </Text>
               ) : null}
-              {descriptionMeta?.instagram ? <Text className="partner-hero__description"><strong>Instagram:</strong> <a href={descriptionMeta.instagram} target="_blank" rel="noreferrer" className="partner-rich-link">{descriptionMeta.instagram}</a></Text> : null}
-              {descriptionMeta?.vk ? <Text className="partner-hero__description"><strong>ВКонтакте:</strong> <a href={descriptionMeta.vk} target="_blank" rel="noreferrer" className="partner-rich-link">{descriptionMeta.vk}</a></Text> : null}
               {partnerBenefit ? <Text className="partner-hero__benefit">Привилегия: {partnerBenefit}</Text> : null}
             </Div>
           </Card>
         </Div>
+        {contactLinks.length > 0 ? (
+          <Div>
+            <Card className="partner-contact-card glass-panel" mode="shadow">
+              <Div>
+                <Title level="3" weight="2">Контакты</Title>
+                <Spacing size={10} />
+                <div className="partner-links">
+                  {contactLinks.map((link) => (
+                    <a
+                      key={`${link.label}:${link.href}`}
+                      className="partner-link-chip"
+                      href={link.href}
+                      target={link.isExternal ? '_blank' : undefined}
+                      rel={link.isExternal ? 'noreferrer' : undefined}
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              </Div>
+            </Card>
+          </Div>
+        ) : null}
 
         <Header className="glass-panel partner-offers-header">Услуги и привилегии</Header>
         {isOffersLoading ? <Div><Text className="state-note">Загружаем услуги…</Text></Div> : null}
