@@ -23,15 +23,43 @@ type CatalogPageProps = {
 
 export function CatalogPage({ partners, cities, selectedCityId, selectedCategorySlug, selectedCityLabel, isProfileCityFallback, onCityChange, onCategoryChange, onResetAllFilters, onBack, onPartnerClick }: CatalogPageProps) {
   const categories = useMemo(() => {
-    const bySlug = new Map<string, string>();
+    const dedupedCategories = new Map<string, { label: string; value: string }>();
+    const normalize = (value: unknown): string | null => {
+      if (typeof value !== 'string') return null;
+      const cleaned = value.trim();
+      return cleaned.length > 0 ? cleaned : null;
+    };
+
+    const registerCategory = (candidate: { slug?: unknown; id?: unknown; name?: unknown; title?: unknown }) => {
+      const slug = normalize(candidate.slug)?.toLowerCase();
+      const id = candidate.id != null ? String(candidate.id).trim() : '';
+      const label = normalize(candidate.name) ?? normalize(candidate.title);
+      const normalizedLabel = label?.toLowerCase();
+      const key = slug ? `slug:${slug}` : id ? `id:${id}` : normalizedLabel ? `name:${normalizedLabel}` : null;
+      if (!key || !label) return;
+      if (!dedupedCategories.has(key)) dedupedCategories.set(key, { label, value: slug ?? normalizedLabel ?? id });
+    };
+
     partners.forEach((partner) => {
-      const slugs = getPartnerCategorySlugs(partner);
-      const label = getPartnerCategoryName(partner) ?? null;
-      slugs.forEach((slug) => {
-        if (!bySlug.has(slug)) bySlug.set(slug, label ?? slug);
-      });
+      const fromPartnerLabel = getPartnerCategoryName(partner);
+      const fromPartnerSlugs = getPartnerCategorySlugs(partner);
+      fromPartnerSlugs.forEach((slug) => registerCategory({ slug, name: fromPartnerLabel ?? slug }));
+      if (Array.isArray(partner.categories)) {
+        partner.categories.forEach((entry) => {
+          if (entry && typeof entry === 'object') {
+            const category = entry as Record<string, unknown>;
+            registerCategory({
+              slug: category.slug,
+              id: category.id,
+              name: category.name,
+              title: category.title,
+            });
+          }
+        });
+      }
     });
-    return Array.from(bySlug.entries()).map(([slug, label]) => ({ label, value: slug }));
+
+    return Array.from(dedupedCategories.values());
   }, [partners]);
 
   if (import.meta.env.DEV) {
@@ -52,12 +80,11 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
             <Text className="catalog-city-row__label">Город</Text>
             <Text className="catalog-city-row__value">{selectedCityLabel}</Text>
           </Div>
-          {isProfileCityFallback ? <Text className="state-note">Город не выбран вручную — используем город из профиля.</Text> : null}
           <Select
             value={selectedCityId}
             onChange={(event) => onCityChange(event.target.value)}
             options={cities.map((city) => ({ label: city.name, value: String(city.id) }))}
-            placeholder="Выберите город"
+            placeholder={isProfileCityFallback && selectedCityLabel ? selectedCityLabel : 'Выберите город'}
           />
           <Div className="catalog-chips" role="tablist" aria-label="Категории каталога">
             <button type="button" className={`catalog-filter-chip ${!selectedCategorySlug ? 'catalog-filter-chip--active' : ''}`} onClick={() => onCategoryChange('')}>Все</button>
@@ -78,8 +105,8 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
 
         {partners.length === 0 ? (
           <EmptyState
-            header={selectedCategorySlug ? 'В этой категории пока нет партнёров.' : 'В выбранном городе пока нет партнёров.'}
-            description={selectedCategorySlug ? 'Попробуйте выбрать другую категорию, другой город или сбросить фильтры.' : 'Попробуйте выбрать другой город или сбросить фильтры.'}
+            header="Партнёры не найдены"
+            description="Попробуйте выбрать категорию «Все» или другой город."
           />
         ) : (
           <Div className="partner-catalog-grid">
@@ -90,11 +117,10 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
               const normalizedCategory = getPartnerCategoryName(partner);
-              const categoryLabel = normalizedCategory ?? 'Без категории';
 
               return (
                 <Card className="partner-card" mode="shadow" key={String(partner.id ?? `${partnerName}-${index}`)}>
-                  <ImageWithFallback src={partnerImage} alt={partnerName} className="partner-card__image" placeholderClassName="partner-card__placeholder" placeholderLabel={categoryLabel} />
+                  <ImageWithFallback src={partnerImage} alt={partnerName} className="partner-card__image" placeholderClassName="partner-card__placeholder" placeholderLabel={partnerName} />
                   <Div>
                     <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
                     <div className="partner-badges">
