@@ -11,7 +11,7 @@ type CatalogPageProps = {
   partners: ApiPartner[];
   cities: ApiCity[];
   selectedCityId: string;
-  selectedCategorySlug: string;
+  selectedCategorySlug: string | null;
   selectedCityLabel: string;
   isProfileCityFallback: boolean;
   onCityChange: (cityId: string) => void;
@@ -34,23 +34,52 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
     return Array.from(bySlug.entries()).map(([slug, label]) => ({ label, value: slug }));
   }, [partners]);
 
+  if (import.meta.env.DEV) {
+    console.debug('Catalog visibility diagnostics', {
+      loadedPartnersCount: partners.length,
+      visiblePartnersCount: partners.length,
+      selectedCityId: selectedCityId || null,
+      selectedCategorySlug,
+    });
+  }
+
   return (
     <AppShell titleClassName="bloom-panel-header-title-compact" title="Партнёры">
       <Group className="fade-up">
         <Div className="bloom-page-title-card">Партнёры</Div>
-        <Div className="catalog-filters glass-panel">
-          <Text>Город: {selectedCityLabel}</Text>
-          {isProfileCityFallback ? <Text className="state-note">Каталог показывается по городу из профиля.</Text> : null}
-          <Select value={selectedCityId} onChange={(event) => onCityChange(event.target.value)} options={cities.map((city) => ({ label: city.name, value: String(city.id) }))} placeholder="Выберите город" />
-          <Select value={selectedCategorySlug} onChange={(event) => onCategoryChange(event.target.value)} options={[{ label: 'Все категории', value: '' }, ...categories]} placeholder="Категория" />
-          <Spacing size={8} />
-          <Button mode="secondary" onClick={onResetAllFilters}>Сбросить фильтры</Button>
+        <Div className="catalog-filters-panel glass-panel">
+          <Div className="catalog-city-row">
+            <Text className="catalog-city-row__label">Город</Text>
+            <Text className="catalog-city-row__value">{selectedCityLabel}</Text>
+          </Div>
+          {isProfileCityFallback ? <Text className="state-note">Город не выбран вручную — используем город из профиля.</Text> : null}
+          <Select
+            value={selectedCityId}
+            onChange={(event) => onCityChange(event.target.value)}
+            options={cities.map((city) => ({ label: city.name, value: String(city.id) }))}
+            placeholder="Выберите город"
+          />
+          <Div className="catalog-chips" role="tablist" aria-label="Категории каталога">
+            <button type="button" className={`catalog-filter-chip ${!selectedCategorySlug ? 'catalog-filter-chip--active' : ''}`} onClick={() => onCategoryChange('')}>Все</button>
+            {categories.map((category) => (
+              <button
+                key={category.value}
+                type="button"
+                className={`catalog-filter-chip ${selectedCategorySlug === category.value ? 'catalog-filter-chip--active' : ''}`}
+                onClick={() => onCategoryChange(category.value)}
+                title={category.label}
+              >
+                {category.label}
+              </button>
+            ))}
+          </Div>
+          <Button className="catalog-reset-button" mode="secondary" size="s" onClick={onResetAllFilters}>Сбросить фильтры</Button>
         </Div>
 
         {partners.length === 0 ? (
           <EmptyState
-            header={selectedCategorySlug ? 'Партнёры не найдены в этой категории' : 'В выбранном городе пока нет партнёров'}
-            description={selectedCategorySlug ? 'В этой категории и городе партнёров пока нет. Попробуйте выбрать другую категорию или город.' : 'Попробуйте выбрать другой город или сбросить фильтры.'}
+            header={selectedCategorySlug ? 'В этой категории пока нет партнёров.' : 'В выбранном городе пока нет партнёров.'}
+            description={selectedCategorySlug ? 'Попробуйте выбрать другую категорию, другой город или сбросить фильтры.' : 'Попробуйте выбрать другой город или сбросить фильтры.'}
           />
         ) : (
           <Div className="partner-catalog-grid">
