@@ -989,3 +989,53 @@ body.gallery-modal-open {
 .catalog-reset-button {
   width: fit-content;
 }
+
+.catalog-city-picker__trigger {
+  padding: 0;
+  min-height: 28px;
+  color: var(--bloom-primary-dark);
+  font-weight: 600;
+}
+
+.catalog-city-picker__sheet {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--bloom-border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px;
+}
+
+.catalog-city-picker__option,
+.catalog-city-picker__close {
+  border: 1px solid var(--bloom-border);
+  border-radius: 10px;
+  min-height: 36px;
+  background: #fff;
+  text-align: left;
+  padding: 0 10px;
+  font-weight: 500;
+}
+
+.catalog-city-picker__option--active {
+  background: var(--bloom-primary-soft);
+  color: var(--bloom-primary-dark);
+}
+
+.catalog-local-loading {
+  color: var(--bloom-muted);
+  font-weight: 600;
+}
+
+.partner-card--no-image .partner-card__placeholder {
+  height: 108px;
+  min-height: 108px;
+  max-height: 120px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--bloom-primary-dark);
+}
+
+.partner-card__placeholder--compact {
+  background: linear-gradient(135deg, #fff3f0 0%, #f5d8d3 100%);
+}
