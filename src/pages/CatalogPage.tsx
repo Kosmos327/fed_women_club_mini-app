@@ -8,6 +8,17 @@ import type { ApiCity, ApiPartner } from '../api/client';
 import { getPartnerCategoryName } from '../utils/format';
 import { buildDedupedCategories } from '../utils/catalogCategories';
 
+const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
+
+function getCatalogDescription(value?: string): string | null {
+  if (!value) return null;
+  const withoutLinks = value.replace(URL_REGEX, ' ').replace(/\s+/g, ' ').trim();
+  if (!withoutLinks) return null;
+  const maxLength = 140;
+  if (withoutLinks.length <= maxLength) return withoutLinks;
+  return `${withoutLinks.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
 type CatalogPageProps = {
   partners: ApiPartner[];
   cities: ApiCity[];
@@ -84,7 +95,7 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
             {partners.map((partner, index) => {
               const partnerName = partner.name ?? partner.title ?? 'Партнёр клуба';
               const partnerCity = partner.city_name ?? partner.city;
-              const partnerDescription = partner.description ?? partner.short_description;
+              const partnerDescription = getCatalogDescription(partner.description ?? partner.short_description);
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
               const normalizedCategory = getPartnerCategoryName(partner);
