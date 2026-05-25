@@ -9,6 +9,32 @@ import { getOfferImages } from '../utils/offerImage';
 import { getOfferPricingView } from '../utils/offerPricing';
 import { PhotoGalleryModal } from '../components/PhotoGalleryModal';
 
+const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
+
+function extractPrimaryLinks(text: string): { cleanedText: string; instagram: string | null; vk: string | null } {
+  const urls = Array.from(text.matchAll(URL_REGEX)).map((match) => match[0]);
+  const instagram = urls.find((url) => /(instagram\.com|instagr\.am)/i.test(url)) ?? null;
+  const vk = urls.find((url) => /(vk\.com|vkontakte\.ru)/i.test(url)) ?? null;
+  return { cleanedText: text.trim(), instagram, vk };
+}
+
+function linkifyText(text: string): Array<string | JSX.Element> {
+  const result: Array<string | JSX.Element> = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null = URL_REGEX.exec(text);
+  let key = 0;
+  while (match) {
+    const [url] = match;
+    if (match.index > lastIndex) result.push(text.slice(lastIndex, match.index));
+    result.push(<a key={`url-${key++}`} href={url} target="_blank" rel="noreferrer" className="partner-rich-link">{url}</a>);
+    lastIndex = match.index + url.length;
+    match = URL_REGEX.exec(text);
+  }
+  if (lastIndex < text.length) result.push(text.slice(lastIndex));
+  URL_REGEX.lastIndex = 0;
+  return result;
+}
+
 type PartnerPageProps = {
   selectedPartner: ApiPartner | null;
   onBack: () => void;
@@ -54,6 +80,9 @@ export function PartnerPage({
   const partnerCity = selectedPartner?.city_name ?? selectedPartner?.city;
   const partnerCategory = selectedPartner ? getPartnerCategoryName(selectedPartner) : null;
   const partnerImages = getPartnerImages(selectedPartner);
+  const hasPartnerImage = partnerImages.length > 0;
+  const descriptionMeta = partnerDescription ? extractPrimaryLinks(partnerDescription) : null;
+  const partnerInitial = partnerName.trim().charAt(0).toUpperCase() || 'П';
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
   const selectedOfferImages = getOfferImages(selectedOfferForGallery);
   if (import.meta.env.DEV && selectedPartner) {
@@ -66,18 +95,17 @@ export function PartnerPage({
   }
 
   return (
-    <AppShell titleClassName="bloom-panel-header-title-compact" title="Партнёр">
+    <AppShell titleClassName="bloom-panel-header-title-compact" title={partnerName || 'Партнёр'}>
       <Group className="fade-up">
-        <Div className="bloom-page-title-card">Партнёр</Div>
         <Div>
-          <Card className="partner-hero glass-panel" mode="shadow">
+          <Card className={`partner-hero glass-panel ${!hasPartnerImage ? 'partner-hero--compact' : ''}`} mode="shadow">
             <div className="partner-hero__media">
               <ImageWithFallback
-                src={partnerImages[0] ?? null}
+                src={hasPartnerImage ? partnerImages[0] : null}
                 alt={partnerName}
                 className="partner-hero__image"
-                placeholderClassName="partner-hero__placeholder"
-                placeholderLabel={partnerCategory ?? 'Партнёр клуба'}
+                placeholderClassName={`partner-hero__placeholder ${!hasPartnerImage ? 'partner-hero__placeholder--compact' : ''}`}
+                placeholderLabel={partnerInitial}
               />
               {partnerImages.length > 0 ? (
                 <Button
@@ -101,8 +129,14 @@ export function PartnerPage({
                   {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
                 </div>
               ) : null}
-              {selectedPartner?.address ? <Text className="partner-hero__address">{selectedPartner.address}</Text> : null}
-              {partnerDescription ? <Text className="partner-hero__description">{partnerDescription}</Text> : null}
+              {selectedPartner?.address ? <Text className="partner-hero__address"><strong>Адрес:</strong> {selectedPartner.address}</Text> : null}
+              {descriptionMeta?.cleanedText ? (
+                <Text className="partner-hero__description" style={{ whiteSpace: 'pre-line' }}>
+                  {linkifyText(descriptionMeta.cleanedText)}
+                </Text>
+              ) : null}
+              {descriptionMeta?.instagram ? <Text className="partner-hero__description"><strong>Instagram:</strong> <a href={descriptionMeta.instagram} target="_blank" rel="noreferrer" className="partner-rich-link">{descriptionMeta.instagram}</a></Text> : null}
+              {descriptionMeta?.vk ? <Text className="partner-hero__description"><strong>ВКонтакте:</strong> <a href={descriptionMeta.vk} target="_blank" rel="noreferrer" className="partner-rich-link">{descriptionMeta.vk}</a></Text> : null}
               {partnerBenefit ? <Text className="partner-hero__benefit">Привилегия: {partnerBenefit}</Text> : null}
             </Div>
           </Card>

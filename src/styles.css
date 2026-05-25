@@ -862,6 +862,19 @@ body.gallery-modal-open {
   width: 100%;
 }
 
+.partner-hero--compact .bloom-media {
+  height: clamp(92px, 18dvh, 132px);
+}
+
+.partner-hero__placeholder--compact {
+  font-size: 34px;
+}
+
+.partner-rich-link {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
 .gallery-modal-overlay {
   align-items: center;
   justify-content: center;
