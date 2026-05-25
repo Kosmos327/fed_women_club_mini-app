@@ -157,7 +157,7 @@ export default function App() {
   const [verifications, setVerifications] = useState<ApiVerification[]>([]);
   const [partners, setPartners] = useState<ApiPartner[]>([]);
   const [selectedCatalogCityId, setSelectedCatalogCityId] = useState<string>('');
-  const [selectedCatalogCategorySlug, setSelectedCatalogCategorySlug] = useState<string>('');
+  const [selectedCatalogCategorySlug, setSelectedCatalogCategorySlug] = useState<string | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<ApiPartner | null>(null);
   const [isPartnersLoading, setIsPartnersLoading] = useState<boolean>(false);
   const [partnersError, setPartnersError] = useState<string>('');
@@ -290,7 +290,7 @@ export default function App() {
 
     try {
       const cityId = params?.cityId ?? selectedCatalogCityId;
-      const categorySlug = params?.categorySlug ?? selectedCatalogCategorySlug;
+      const categorySlug = params?.categorySlug ?? selectedCatalogCategorySlug ?? null;
       const requestParams = {
         ...(cityId ? { city_id: cityId } : {}),
         ...(categorySlug ? { category_slug: categorySlug } : {}),
@@ -532,16 +532,17 @@ export default function App() {
           isProfileCityFallback={!selectedCatalogCityId}
           onCityChange={(cityId) => {
             setSelectedCatalogCityId(cityId);
-            void openCatalogPage({ cityId, categorySlug: selectedCatalogCategorySlug });
+            void openCatalogPage({ cityId, categorySlug: selectedCatalogCategorySlug ?? undefined });
           }}
           onCategoryChange={(categorySlug) => {
-            setSelectedCatalogCategorySlug(categorySlug);
-            void openCatalogPage({ cityId: selectedCatalogCityId, categorySlug });
+            const nextCategory = categorySlug || null;
+            setSelectedCatalogCategorySlug(nextCategory);
+            void openCatalogPage({ cityId: selectedCatalogCityId, categorySlug: nextCategory ?? undefined });
           }}
           onResetAllFilters={() => {
             setSelectedCatalogCityId('');
-            setSelectedCatalogCategorySlug('');
-            void openCatalogPage({ cityId: '', categorySlug: '' });
+            setSelectedCatalogCategorySlug(null);
+            void openCatalogPage({ cityId: '', categorySlug: undefined });
           }}
           onBack={() => setPage('home')}
           onPartnerClick={(partner) => {
