@@ -494,7 +494,7 @@ body {
 }
 
 .bloom-panel-header-title-compact {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: rgba(42, 32, 32, 0.82);
 }
@@ -851,8 +851,9 @@ body.gallery-modal-open {
   box-shadow: 0 6px 14px rgba(143, 79, 73, 0.2);
 }
 
-.partner-offers-header { margin-top: 6px; }
-.offer-card-wrap { padding-top: 2px; padding-bottom: 2px; }
+ .partner-offers-heading-wrap { padding-top: 4px; padding-bottom: 0; }
+.partner-offers-heading { margin: 0; font-size: 18px; line-height: 1.25; }
+.offer-card-wrap { padding-top: 0; padding-bottom: 2px; }
 .offer-card--compact .vkuiDiv { padding: 12px; }
 .offer-card--compact .offer-card__prices { margin-top: 8px; padding: 10px; }
 .offer-card--compact .offer-card__member-price strong { font-size: 20px; }
@@ -876,29 +877,33 @@ body.gallery-modal-open {
 }
 
 .partner-contact-card .vkuiDiv {
-  padding-top: 14px;
-  padding-bottom: 14px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.partner-contact-card__title {
+  margin-bottom: 6px;
 }
 
 .partner-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .partner-link-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding: 8px 12px;
+  min-height: 30px;
+  padding: 5px 10px;
   border-radius: 999px;
   border: 1px solid var(--bloom-border);
   background: rgba(255, 255, 255, 0.88);
   color: var(--bloom-primary-dark);
   text-decoration: none;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.2;
 }
 
@@ -942,7 +947,7 @@ body.gallery-modal-open {
 
 .offer-pricing__label {
   color: var(--bloom-muted);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .offer-pricing__value {
@@ -1016,7 +1021,7 @@ body.gallery-modal-open {
   height: 36px;
   min-height: 36px;
   padding: 0 12px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #7c534e;
   white-space: nowrap;
@@ -1086,3 +1091,5 @@ body.gallery-modal-open {
 .partner-card__placeholder--compact {
   background: linear-gradient(135deg, #fff3f0 0%, #f5d8d3 100%);
 }
+
+.partner-hero__description { margin-top: 8px; }

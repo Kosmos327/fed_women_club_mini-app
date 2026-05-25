@@ -1,8 +1,8 @@
-import { Button, Card, Div, Group, Header, Spacing, Text, Title } from '@vkontakte/vkui';
+import { Button, Card, Div, Group, Spacing, Text, Title } from '@vkontakte/vkui';
 import { useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import type { ApiOffer, ApiPartner, ApiVerification } from '../api/client';
-import { formatDateTime, formatVerificationStatus, getPartnerCategoryName } from '../utils/format';
+import { formatDateTime, formatPartnerCategoryLabel, formatPartnerCityLabel, formatVerificationStatus, getPartnerCategoryName } from '../utils/format';
 import { getPartnerImages } from '../utils/partnerImage';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getOfferImages } from '../utils/offerImage';
@@ -95,8 +95,10 @@ export function PartnerPage({
   const partnerDescription = selectedPartner?.description ?? selectedPartner?.short_description;
   const partnerBenefit = selectedPartner?.discount_text ?? selectedPartner?.benefit_text;
   const partnerId = selectedPartner?.id != null ? String(selectedPartner.id) : '';
-  const partnerCity = selectedPartner?.city_name ?? selectedPartner?.city;
-  const partnerCategory = selectedPartner ? getPartnerCategoryName(selectedPartner) : null;
+  const partnerCityRaw = selectedPartner?.city_name ?? selectedPartner?.city;
+  const partnerCategoryRaw = selectedPartner ? getPartnerCategoryName(selectedPartner) : null;
+  const partnerCity = formatPartnerCityLabel(partnerCityRaw);
+  const partnerCategory = formatPartnerCategoryLabel(partnerCategoryRaw);
   const partnerImages = getPartnerImages(selectedPartner);
   const hasPartnerImage = partnerImages.length > 0;
   const descriptionText = cleanValue(partnerDescription);
@@ -123,8 +125,21 @@ export function PartnerPage({
   pushLink('Telegram', telegramUrl);
   pushLink('WhatsApp', whatsappUrl);
   pushLink('Маршрут', mapUrl);
-  pushLink('Ещё ссылка', socialUrl);
-  const partnerInitial = partnerName.trim().charAt(0).toUpperCase() || 'П';
+  pushLink('Сайт', socialUrl);
+
+  const getPartnerInitial = (name: string): string => {
+    const trimmed = name.trim();
+    const firstSymbol = Array.from(trimmed)[0];
+    return firstSymbol ? firstSymbol.toLocaleUpperCase('ru-RU') : 'П';
+  };
+
+  const normalizedDescription = descriptionText && partnerAddress
+    ? descriptionText.trim().toLowerCase().startsWith(partnerAddress.trim().toLowerCase())
+      ? cleanValue(descriptionText.slice(partnerAddress.length))
+      : descriptionText
+    : descriptionText;
+
+  const partnerInitial = getPartnerInitial(partnerName);
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
   const selectedOfferImages = getOfferImages(selectedOfferForGallery);
   if (import.meta.env.DEV && selectedPartner) {
@@ -172,9 +187,9 @@ export function PartnerPage({
                 </div>
               ) : null}
               {partnerAddress ? <Text className="partner-hero__address"><strong>Адрес:</strong> {partnerAddress}</Text> : null}
-              {descriptionText ? (
+              {normalizedDescription ? (
                 <Text className="partner-hero__description" style={{ whiteSpace: 'pre-line' }}>
-                  {linkifyText(descriptionText)}
+                  {linkifyText(normalizedDescription)}
                 </Text>
               ) : null}
               {partnerBenefit ? <Text className="partner-hero__benefit">Привилегия: {partnerBenefit}</Text> : null}
@@ -185,8 +200,7 @@ export function PartnerPage({
           <Div>
             <Card className="partner-contact-card glass-panel" mode="shadow">
               <Div>
-                <Title level="3" weight="2">Контакты</Title>
-                <Spacing size={10} />
+                <Title level="3" weight="2" className="partner-contact-card__title">Контакты</Title>
                 <div className="partner-links">
                   {contactLinks.map((link) => (
                     <a
@@ -205,7 +219,7 @@ export function PartnerPage({
           </Div>
         ) : null}
 
-        <Header className="glass-panel partner-offers-header">Услуги и привилегии</Header>
+        <Div className="partner-offers-heading-wrap"><Title level="2" weight="2" className="partner-offers-heading">Услуги и привилегии</Title></Div>
         {isOffersLoading ? <Div><Text className="state-note">Загружаем услуги…</Text></Div> : null}
         {!isOffersLoading && offersError ? <Div><Text className="state-note state-note--error">Не удалось загрузить услуги партнёра</Text></Div> : null}
         {!isOffersLoading && !offersError && offers.length === 0 ? <Div><Text className="state-note">У партнёра пока нет активных услуг</Text></Div> : null}
