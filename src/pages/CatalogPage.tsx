@@ -1,11 +1,12 @@
-import { Button, Card, Div, Group, Select, Spacing, Text, Title } from '@vkontakte/vkui';
-import { useMemo } from 'react';
+import { Button, Card, Div, Group, Text, Title } from '@vkontakte/vkui';
+import { useMemo, useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getPartnerImageSrc } from '../utils/partnerImage';
 import type { ApiCity, ApiPartner } from '../api/client';
-import { getPartnerCategoryName, getPartnerCategorySlugs } from '../utils/format';
+import { getPartnerCategoryName } from '../utils/format';
+import { buildDedupedCategories } from '../utils/catalogCategories';
 
 type CatalogPageProps = {
   partners: ApiPartner[];
@@ -14,6 +15,8 @@ type CatalogPageProps = {
   selectedCategorySlug: string | null;
   selectedCityLabel: string;
   isProfileCityFallback: boolean;
+  isPartnersLoading: boolean;
+  partnersError: string;
   onCityChange: (cityId: string) => void;
   onCategoryChange: (categorySlug: string) => void;
   onResetAllFilters: () => void;
@@ -21,55 +24,9 @@ type CatalogPageProps = {
   onPartnerClick: (partner: ApiPartner) => void;
 };
 
-export function CatalogPage({ partners, cities, selectedCityId, selectedCategorySlug, selectedCityLabel, isProfileCityFallback, onCityChange, onCategoryChange, onResetAllFilters, onBack, onPartnerClick }: CatalogPageProps) {
-  const categories = useMemo(() => {
-    const dedupedCategories = new Map<string, { label: string; value: string }>();
-    const normalize = (value: unknown): string | null => {
-      if (typeof value !== 'string') return null;
-      const cleaned = value.trim();
-      return cleaned.length > 0 ? cleaned : null;
-    };
-
-    const registerCategory = (candidate: { slug?: unknown; id?: unknown; name?: unknown; title?: unknown }) => {
-      const slug = normalize(candidate.slug)?.toLowerCase();
-      const id = candidate.id != null ? String(candidate.id).trim() : '';
-      const label = normalize(candidate.name) ?? normalize(candidate.title);
-      const normalizedLabel = label?.toLowerCase();
-      const key = slug ? `slug:${slug}` : id ? `id:${id}` : normalizedLabel ? `name:${normalizedLabel}` : null;
-      if (!key || !label) return;
-      if (!dedupedCategories.has(key)) dedupedCategories.set(key, { label, value: slug ?? normalizedLabel ?? id });
-    };
-
-    partners.forEach((partner) => {
-      const fromPartnerLabel = getPartnerCategoryName(partner);
-      const fromPartnerSlugs = getPartnerCategorySlugs(partner);
-      fromPartnerSlugs.forEach((slug) => registerCategory({ slug, name: fromPartnerLabel ?? slug }));
-      if (Array.isArray(partner.categories)) {
-        partner.categories.forEach((entry) => {
-          if (entry && typeof entry === 'object') {
-            const category = entry as Record<string, unknown>;
-            registerCategory({
-              slug: category.slug,
-              id: category.id,
-              name: category.name,
-              title: category.title,
-            });
-          }
-        });
-      }
-    });
-
-    return Array.from(dedupedCategories.values());
-  }, [partners]);
-
-  if (import.meta.env.DEV) {
-    console.debug('Catalog visibility diagnostics', {
-      loadedPartnersCount: partners.length,
-      visiblePartnersCount: partners.length,
-      selectedCityId: selectedCityId || null,
-      selectedCategorySlug,
-    });
-  }
+export function CatalogPage({ partners, cities, selectedCityId, selectedCategorySlug, selectedCityLabel, isProfileCityFallback, isPartnersLoading, partnersError, onCityChange, onCategoryChange, onResetAllFilters, onBack, onPartnerClick }: CatalogPageProps) {
+  const [isCityPickerOpen, setIsCityPickerOpen] = useState(false);
+  const dedupedCategories = useMemo(() => buildDedupedCategories(partners), [partners]);
 
   return (
     <AppShell titleClassName="bloom-panel-header-title-compact" title="Партнёры">
@@ -78,22 +35,35 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
         <Div className="catalog-filters-panel glass-panel">
           <Div className="catalog-city-row">
             <Text className="catalog-city-row__label">Город</Text>
-            <Text className="catalog-city-row__value">{selectedCityLabel}</Text>
+            <Button mode="tertiary" className="catalog-city-picker__trigger" onClick={() => setIsCityPickerOpen((prev) => !prev)}>
+              {isProfileCityFallback && !selectedCityLabel ? 'Выберите город' : selectedCityLabel || 'Выберите город'} ▾
+            </Button>
           </Div>
-          <Select
-            value={selectedCityId}
-            onChange={(event) => onCityChange(event.target.value)}
-            options={cities.map((city) => ({ label: city.name, value: String(city.id) }))}
-            placeholder={isProfileCityFallback && selectedCityLabel ? selectedCityLabel : 'Выберите город'}
-          />
+          {isCityPickerOpen ? (
+            <Div className="catalog-city-picker__sheet">
+              {cities.map((city) => {
+                const cityId = String(city.id);
+                const isActive = selectedCityId === cityId;
+                return (
+                  <button key={cityId} type="button" className={`catalog-city-picker__option ${isActive ? 'catalog-city-picker__option--active' : ''}`} onClick={() => {
+                    onCityChange(cityId);
+                    setIsCityPickerOpen(false);
+                  }}>
+                    {city.name}
+                  </button>
+                );
+              })}
+              <button type="button" className="catalog-city-picker__close" onClick={() => setIsCityPickerOpen(false)}>Закрыть</button>
+            </Div>
+          ) : null}
           <Div className="catalog-chips" role="tablist" aria-label="Категории каталога">
             <button type="button" className={`catalog-filter-chip ${!selectedCategorySlug ? 'catalog-filter-chip--active' : ''}`} onClick={() => onCategoryChange('')}>Все</button>
-            {categories.map((category) => (
+            {dedupedCategories.map((category) => (
               <button
-                key={category.value}
+                key={category.slug}
                 type="button"
-                className={`catalog-filter-chip ${selectedCategorySlug === category.value ? 'catalog-filter-chip--active' : ''}`}
-                onClick={() => onCategoryChange(category.value)}
+                className={`catalog-filter-chip ${selectedCategorySlug === category.slug ? 'catalog-filter-chip--active' : ''}`}
+                onClick={() => onCategoryChange(category.slug)}
                 title={category.label}
               >
                 {category.label}
@@ -103,12 +73,15 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
           <Button className="catalog-reset-button" mode="secondary" size="s" onClick={onResetAllFilters}>Сбросить фильтры</Button>
         </Div>
 
-        {partners.length === 0 ? (
+        {partnersError ? <EmptyState header="Не удалось загрузить партнёров" description={partnersError} /> : null}
+        {isPartnersLoading ? <Div className="catalog-local-loading">Обновляем каталог…</Div> : null}
+        {!isPartnersLoading && !partnersError && partners.length === 0 ? (
           <EmptyState
             header="Партнёры не найдены"
             description="Попробуйте выбрать категорию «Все» или другой город."
           />
-        ) : (
+        ) : null}
+        {!partnersError && partners.length > 0 ? (
           <Div className="partner-catalog-grid">
             {partners.map((partner, index) => {
               const partnerName = partner.name ?? partner.title ?? 'Партнёр клуба';
@@ -117,10 +90,11 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
               const normalizedCategory = getPartnerCategoryName(partner);
+              const noImage = !partnerImage;
 
               return (
-                <Card className="partner-card" mode="shadow" key={String(partner.id ?? `${partnerName}-${index}`)}>
-                  <ImageWithFallback src={partnerImage} alt={partnerName} className="partner-card__image" placeholderClassName="partner-card__placeholder" placeholderLabel={partnerName} />
+                <Card className={`partner-card ${noImage ? 'partner-card--no-image' : ''}`} mode="shadow" key={String(partner.id ?? `${partnerName}-${index}`)} onClick={() => onPartnerClick(partner)}>
+                  <ImageWithFallback src={partnerImage} alt={partnerName} className="partner-card__image" placeholderClassName={`partner-card__placeholder ${noImage ? 'partner-card__placeholder--compact' : ''}`} placeholderLabel={noImage ? partnerName.slice(0, 1).toUpperCase() : partnerName} />
                   <Div>
                     <Title className="partner-card__title" level="2" weight="2">{partnerName}</Title>
                     <div className="partner-badges">
@@ -130,14 +104,13 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
                     {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}
                     {partnerDescription ? <Text className="partner-card__description">{partnerDescription}</Text> : null}
                     {partnerBenefit ? <Text className="partner-card__benefit">{partnerBenefit}</Text> : null}
-                    <Spacing size={12} />
-                    <Button className="bloom-button-primary partner-card__button" mode="secondary" stretched size="m" onClick={() => onPartnerClick(partner)}>Подробнее</Button>
+                    <Button className="bloom-button-primary partner-card__button" mode="secondary" stretched size="m" onClick={(event) => { event.stopPropagation(); onPartnerClick(partner); }}>Подробнее</Button>
                   </Div>
                 </Card>
               );
             })}
           </Div>
-        )}
+        ) : null}
         <Div><Button className="bloom-button-muted" mode="secondary" onClick={onBack}>Назад</Button></Div>
       </Group>
     </AppShell>

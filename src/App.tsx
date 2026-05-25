@@ -517,9 +517,6 @@ export default function App() {
     }
 
     if (page === 'catalog') {
-      if (isPartnersLoading) return <LoadingState />;
-      if (partnersError) return <ErrorState message={partnersError} />;
-
       return (
         <CatalogPage
           partners={partners}
@@ -530,6 +527,8 @@ export default function App() {
             ? (cities.find((city) => String(city.id) === selectedCatalogCityId)?.name ?? 'Выбранный город')
             : (client?.city_name ?? client?.city ?? 'город профиля')}
           isProfileCityFallback={!selectedCatalogCityId}
+          isPartnersLoading={isPartnersLoading}
+          partnersError={partnersError}
           onCityChange={(cityId) => {
             setSelectedCatalogCityId(cityId);
             void openCatalogPage({ cityId, categorySlug: selectedCatalogCategorySlug ?? undefined });
