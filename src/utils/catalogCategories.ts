@@ -5,6 +5,13 @@ export type CatalogCategory = {
   slug: string;
 };
 
+const KNOWN_CATEGORY_LABELS: Record<string, string> = {
+  krasota: 'Красота',
+  'manikyur-pedikyur': 'Маникюр / педикюр',
+  'brovi-resnitsy': 'Брови / ресницы',
+  kosmetologiya: 'Косметология',
+};
+
 const normalizeText = (value: unknown): string | null => {
   if (typeof value !== 'string') return null;
   const normalized = value.trim().replace(/\s+/g, ' ');
@@ -12,6 +19,16 @@ const normalizeText = (value: unknown): string | null => {
 };
 
 const normalizeKey = (value: unknown): string | null => normalizeText(value)?.toLowerCase() ?? null;
+const isSlugLike = (value: string): boolean => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.trim().toLowerCase());
+
+const prettifySlug = (slug: string): string => {
+  const known = KNOWN_CATEGORY_LABELS[slug];
+  if (known) return known;
+  return slug
+    .split('-')
+    .map((chunk) => (chunk ? `${chunk[0].toUpperCase()}${chunk.slice(1)}` : chunk))
+    .join(' ');
+};
 
 const extractCategoryCandidates = (partner: ApiPartner): Array<Record<string, unknown>> => {
   const result: Array<Record<string, unknown>> = [];
@@ -44,26 +61,43 @@ const extractCategoryCandidates = (partner: ApiPartner): Array<Record<string, un
 export const buildDedupedCategories = (partners: ApiPartner[]): CatalogCategory[] => {
   const bySlug = new Map<string, CatalogCategory>();
   const byName = new Map<string, CatalogCategory>();
+  const translitNameToSlug = new Map<string, string>();
+
+  Object.entries(KNOWN_CATEGORY_LABELS).forEach(([slug, label]) => {
+    translitNameToSlug.set(normalizeKey(label) ?? label.toLowerCase(), slug);
+  });
 
   const register = (candidate: Record<string, unknown>) => {
     const slug = normalizeKey(candidate.slug ?? candidate.category_slug);
-    const label =
+    const rawLabel =
       normalizeText(candidate.name) ??
       normalizeText(candidate.title) ??
       normalizeText(candidate.label) ??
       normalizeText(candidate.category_name) ??
       normalizeText(candidate.category);
-    const nameKey = normalizeKey(label);
+    const normalizedLabelKey = normalizeKey(rawLabel);
 
-    if (!slug && !nameKey) return;
+    const inferredSlug = slug
+      ?? (normalizedLabelKey ? translitNameToSlug.get(normalizedLabelKey) ?? null : null)
+      ?? (rawLabel && isSlugLike(rawLabel) ? normalizeKey(rawLabel) : null);
 
-    const existing = (slug ? bySlug.get(slug) : null) ?? (nameKey ? byName.get(nameKey) : null) ?? null;
-    const finalLabel = existing?.label ?? label ?? slug ?? 'Категория';
-    const finalSlug = existing?.slug ?? slug ?? nameKey ?? '';
+    const displayLabel = rawLabel
+      ? (isSlugLike(rawLabel) ? prettifySlug(rawLabel.toLowerCase()) : rawLabel)
+      : (inferredSlug ? prettifySlug(inferredSlug) : null);
+    const nameKey = normalizeKey(displayLabel);
+
+    if (!inferredSlug && !nameKey) return;
+
+    const existing = (inferredSlug ? bySlug.get(inferredSlug) : null) ?? (nameKey ? byName.get(nameKey) : null) ?? null;
+    const finalLabel = existing?.label && !isSlugLike(existing.label)
+      ? existing.label
+      : displayLabel ?? existing?.label ?? (inferredSlug ? prettifySlug(inferredSlug) : 'Категория');
+    const finalSlug = existing?.slug ?? inferredSlug ?? nameKey ?? '';
     const normalizedCategory = { label: finalLabel, slug: finalSlug };
 
-    if (slug) bySlug.set(slug, normalizedCategory);
+    if (inferredSlug) bySlug.set(inferredSlug, normalizedCategory);
     if (nameKey) byName.set(nameKey, normalizedCategory);
+    if (normalizedLabelKey && inferredSlug) translitNameToSlug.set(normalizedLabelKey, inferredSlug);
   };
 
   partners.forEach((partner) => {
