@@ -888,8 +888,8 @@ body.gallery-modal-open {
 
 .offer-pricing__row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-start;
   gap: 10px;
 }
 
@@ -935,8 +935,8 @@ body.gallery-modal-open {
 
 .catalog-city-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   padding: 0;
 }
