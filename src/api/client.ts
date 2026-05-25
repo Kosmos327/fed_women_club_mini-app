@@ -4,6 +4,15 @@ const ACCESS_TOKEN_KEY = 'bloomclub_access_token';
 
 let accessToken: string | null = localStorage.getItem(ACCESS_TOKEN_KEY);
 
+export type ApiFetchError = Error & {
+  status?: number;
+  detail?: string;
+  path: string;
+  url: string;
+  method: string;
+  kind?: 'http' | 'network' | 'parse';
+};
+
 export type ApiUser = {
   id?: number | string;
   full_name?: string;
@@ -201,17 +210,46 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   }
 
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
-    ...options,
-    headers,
-  });
+  const method = String(options.method ?? 'GET').toUpperCase();
+  const url = `${API_BASE_URL}${normalizedPath}`;
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    const networkError = new Error('Network request failed') as ApiFetchError;
+    networkError.kind = 'network';
+    networkError.detail = error instanceof Error ? error.message : 'Network request failed';
+    networkError.path = normalizedPath;
+    networkError.url = url;
+    networkError.method = method;
+    throw networkError;
+  }
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `HTTP ${response.status}`);
+    const httpError = new Error(text || `HTTP ${response.status}`) as ApiFetchError;
+    httpError.kind = 'http';
+    httpError.status = response.status;
+    httpError.detail = text || `HTTP ${response.status}`;
+    httpError.path = normalizedPath;
+    httpError.url = url;
+    httpError.method = method;
+    throw httpError;
   }
-
-  return response.json() as Promise<T>;
+  try {
+    return response.json() as Promise<T>;
+  } catch (error) {
+    const parseError = new Error('Response parse failed') as ApiFetchError;
+    parseError.kind = 'parse';
+    parseError.detail = error instanceof Error ? error.message : 'Response parse failed';
+    parseError.path = normalizedPath;
+    parseError.url = url;
+    parseError.method = method;
+    throw parseError;
+  }
 }
 
 export async function miniAppLogin(launchParams: string): Promise<MiniAppLoginResponse> {

@@ -16,6 +16,7 @@ import {
   miniAppLogin,
   updateMe,
   setAccessToken,
+  type ApiFetchError,
   type ApiClient,
   type ApiCity,
   type ApiPaymentRequest,
@@ -45,6 +46,18 @@ type ProfileApiState = {
   user: ApiUser | null;
   client: ApiClient | null;
 };
+
+type BootstrapStep =
+  | 'vk-init'
+  | 'auth'
+  | 'me'
+  | 'cities'
+  | 'subscription'
+  | 'savings'
+  | 'partners/catalog'
+  | 'verifications'
+  | 'activity'
+  | 'unknown';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -100,6 +113,13 @@ const parseApiErrorDetail = (error: unknown): string => {
   return rawMessage;
 };
 
+const getBootstrapErrorCode = (error: unknown): string => {
+  const apiError = error as ApiFetchError;
+  if (typeof apiError?.status === 'number') return String(apiError.status);
+  if (apiError?.kind === 'network') return 'network';
+  return 'unknown';
+};
+
 export default function App() {
   const [authState, setAuthState] = useState<AuthState>('loading');
   const [page, setPage] = useState<Page>('home');
@@ -117,6 +137,8 @@ export default function App() {
   const [isVerificationsLoading, setIsVerificationsLoading] = useState<boolean>(false);
   const [verificationsError, setVerificationsError] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [bootstrapErrorStep, setBootstrapErrorStep] = useState<BootstrapStep>('unknown');
+  const [bootstrapErrorCode, setBootstrapErrorCode] = useState<string>('unknown');
   const [isCreatingVerification, setIsCreatingVerification] = useState<boolean>(false);
   const [createdVerification, setCreatedVerification] = useState<ApiVerification | null>(null);
   const [createVerificationError, setCreateVerificationError] = useState<string>('');
@@ -160,51 +182,54 @@ export default function App() {
     return profileState;
   };
 
-  useEffect(() => {
+  const runBootstrap = async () => {
     const launchParams = getRawVkLaunchParams();
+    let currentStep: BootstrapStep = 'vk-init';
+    setBootstrapErrorStep('unknown');
+    setBootstrapErrorCode('unknown');
+    setErrorMessage('');
 
     if (!launchParams) {
       clearAccessToken();
       setAuthState('no_launch_params');
       return;
     }
-
-    const bootstrapStep = { current: 'auth.login' as 'auth.login' | 'clients.me' | 'clients.me.subscription' };
-
-    miniAppLogin(launchParams)
-      .then(async (response) => {
-        if ('status' in response && response.status === 'join_via_bot_required') {
-          clearAccessToken();
-          setAuthState('join_required');
-          return;
-        }
-
-        const successResponse = response as MiniAppLoginSuccess;
-        setAccessToken(successResponse.access_token);
-
-        bootstrapStep.current = 'clients.me';
-        const [_, subscriptionData] = await Promise.all([
-          refreshProfile({ user: successResponse.user, client: successResponse.client }),
-          (async () => {
-            bootstrapStep.current = 'clients.me.subscription';
-            return getSubscription();
-          })(),
-        ]);
-        setSubscription(subscriptionData ?? null);
-        setAuthState('ready');
-      })
-      .catch((error) => {
-        if (import.meta.env.DEV) {
-          console.error('Bootstrap auth error', {
-            apiBase: import.meta.env.VITE_API_BASE_URL,
-            step: bootstrapStep.current,
-            detail: parseApiErrorDetail(error),
-          });
-        }
+    setAuthState('loading');
+    try {
+      currentStep = 'auth';
+      const response = await miniAppLogin(launchParams);
+      if ('status' in response && response.status === 'join_via_bot_required') {
         clearAccessToken();
-        setErrorMessage('Не удалось загрузить данные клуба. Попробуйте обновить приложение.');
-        setAuthState('error');
-      });
+        setAuthState('join_required');
+        return;
+      }
+      const successResponse = response as MiniAppLoginSuccess;
+      setAccessToken(successResponse.access_token);
+      currentStep = 'me';
+      await refreshProfile({ user: successResponse.user, client: successResponse.client });
+      currentStep = 'subscription';
+      const subscriptionData = await getSubscription();
+      setSubscription(subscriptionData ?? null);
+      setAuthState('ready');
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Bootstrap auth error', {
+          apiBase: import.meta.env.VITE_API_BASE_URL,
+          step: currentStep,
+          code: getBootstrapErrorCode(error),
+          detail: parseApiErrorDetail(error),
+        });
+      }
+      clearAccessToken();
+      setBootstrapErrorStep(currentStep);
+      setBootstrapErrorCode(getBootstrapErrorCode(error));
+      setErrorMessage('Не удалось загрузить данные клуба. Попробуйте обновить приложение.');
+      setAuthState('error');
+    }
+  };
+
+  useEffect(() => {
+    void runBootstrap();
   }, []);
 
   const openPrivilegesPage = async () => {
@@ -445,7 +470,16 @@ export default function App() {
     if (authState === 'loading') return <LoadingState />;
     if (authState === 'join_required') return <JoinViaBotPage />;
     if (authState === 'no_launch_params') return <ErrorState message={noLaunchParamsMessage} />;
-    if (authState === 'error') return <ErrorState message={errorMessage} />;
+    if (authState === 'error') {
+      return (
+        <ErrorState
+          message={errorMessage}
+          detail={`Шаг: ${bootstrapErrorStep}\nКод ошибки: ${bootstrapErrorCode}`}
+          actionLabel="Повторить загрузку"
+          onAction={() => void runBootstrap()}
+        />
+      );
+    }
 
     if (page === 'catalog') {
       if (isPartnersLoading) return <LoadingState />;
