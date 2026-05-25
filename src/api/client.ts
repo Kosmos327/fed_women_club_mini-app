@@ -248,7 +248,7 @@ export async function getPartners<T = ApiPartner[]>(params?: { city_id?: number 
   if (params?.city_slug) query.set('city_slug', params.city_slug);
   if (params?.category_slug) query.set('category_slug', params.category_slug);
   const suffix = query.toString() ? `?${query.toString()}` : '';
-  return apiFetch<T>(`/api/v1/clients/catalog/partners${suffix}`);
+  return apiFetch<T>(`/clients/catalog/partners${suffix}`);
 }
 
 export async function getVerifications<T = ApiVerification[]>(): Promise<T> {
