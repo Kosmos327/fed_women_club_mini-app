@@ -31,11 +31,9 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
   return (
     <AppShell titleClassName="bloom-panel-header-title-compact" title="Партнёры">
       <Group className="fade-up">
-        <Div className="bloom-page-title-card">Партнёры</Div>
-        <Div className="catalog-filters-panel glass-panel">
+                <Div className="catalog-filters-panel glass-panel">
           <Div className="catalog-city-row">
-            <Text className="catalog-city-row__label">Город</Text>
-            <Button mode="tertiary" className="catalog-city-picker__trigger" onClick={() => setIsCityPickerOpen((prev) => !prev)}>
+            <Button mode="tertiary" className="catalog-city-picker__trigger" aria-label="Выбор города" title="Выбрать город" onClick={() => setIsCityPickerOpen((prev) => !prev)}>
               {isProfileCityFallback && !selectedCityLabel ? 'Выберите город' : selectedCityLabel || 'Выберите город'} ▾
             </Button>
           </Div>
@@ -70,7 +68,7 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
               </button>
             ))}
           </Div>
-          <Button className="catalog-reset-button" mode="secondary" size="s" onClick={onResetAllFilters}>Сбросить фильтры</Button>
+          {selectedCityId || selectedCategorySlug ? <Button className="catalog-reset-button" mode="secondary" size="s" onClick={onResetAllFilters}>Сбросить фильтры</Button> : null}
         </Div>
 
         {partnersError ? <EmptyState header="Не удалось загрузить партнёров" description={partnersError} /> : null}
