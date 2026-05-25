@@ -120,6 +120,33 @@ const getBootstrapErrorCode = (error: unknown): string => {
   return 'unknown';
 };
 
+const getApiBaseHost = (): string => {
+  const rawBase = String(import.meta.env.VITE_API_BASE_URL ?? '').trim();
+  if (!rawBase) return 'unknown';
+  try {
+    return new URL(rawBase).host || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+};
+
+const formatBootstrapErrorDetail = (
+  step: BootstrapStep,
+  code: string,
+  error: ApiFetchError | null,
+): string => {
+  const lines = [`Шаг: ${step}`, `Код ошибки: ${code}`];
+  if (error) {
+    if (error.kind) lines.push(`Тип: ${error.kind}`);
+    if (error.method && error.path) lines.push(`Запрос: ${error.method} ${error.path}`);
+    lines.push(`Хост API: ${getApiBaseHost()}`);
+    if (error.kind === 'network' && error.detail) {
+      lines.push(`Сообщение: ${error.detail}`);
+    }
+  }
+  return lines.join('\n');
+};
+
 export default function App() {
   const [authState, setAuthState] = useState<AuthState>('loading');
   const [page, setPage] = useState<Page>('home');
@@ -139,6 +166,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [bootstrapErrorStep, setBootstrapErrorStep] = useState<BootstrapStep>('unknown');
   const [bootstrapErrorCode, setBootstrapErrorCode] = useState<string>('unknown');
+  const [bootstrapErrorDebugDetail, setBootstrapErrorDebugDetail] = useState<string>('');
   const [isCreatingVerification, setIsCreatingVerification] = useState<boolean>(false);
   const [createdVerification, setCreatedVerification] = useState<ApiVerification | null>(null);
   const [createVerificationError, setCreateVerificationError] = useState<string>('');
@@ -187,6 +215,7 @@ export default function App() {
     let currentStep: BootstrapStep = 'vk-init';
     setBootstrapErrorStep('unknown');
     setBootstrapErrorCode('unknown');
+    setBootstrapErrorDebugDetail('');
     setErrorMessage('');
 
     if (!launchParams) {
@@ -212,17 +241,23 @@ export default function App() {
       setSubscription(subscriptionData ?? null);
       setAuthState('ready');
     } catch (error) {
+      const apiError = (error as ApiFetchError) ?? null;
+      const code = getBootstrapErrorCode(error);
       if (import.meta.env.DEV) {
         console.error('Bootstrap auth error', {
           apiBase: import.meta.env.VITE_API_BASE_URL,
           step: currentStep,
-          code: getBootstrapErrorCode(error),
+          code,
           detail: parseApiErrorDetail(error),
+          method: apiError?.method,
+          path: apiError?.path,
+          url: apiError?.url,
         });
       }
       clearAccessToken();
       setBootstrapErrorStep(currentStep);
-      setBootstrapErrorCode(getBootstrapErrorCode(error));
+      setBootstrapErrorCode(code);
+      setBootstrapErrorDebugDetail(formatBootstrapErrorDetail(currentStep, code, apiError));
       setErrorMessage('Не удалось загрузить данные клуба. Попробуйте обновить приложение.');
       setAuthState('error');
     }
@@ -474,7 +509,7 @@ export default function App() {
       return (
         <ErrorState
           message={errorMessage}
-          detail={`Шаг: ${bootstrapErrorStep}\nКод ошибки: ${bootstrapErrorCode}`}
+          detail={bootstrapErrorDebugDetail || `Шаг: ${bootstrapErrorStep}\nКод ошибки: ${bootstrapErrorCode}`}
           actionLabel="Повторить загрузку"
           onAction={() => void runBootstrap()}
         />
