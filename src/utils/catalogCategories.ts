@@ -1,15 +1,9 @@
 import type { ApiPartner } from '../api/client';
+import { formatPartnerCategoryLabel } from './format';
 
 export type CatalogCategory = {
   label: string;
   slug: string;
-};
-
-const KNOWN_CATEGORY_LABELS: Record<string, string> = {
-  krasota: 'Красота',
-  'manikyur-pedikyur': 'Маникюр / педикюр',
-  'brovi-resnitsy': 'Брови / ресницы',
-  kosmetologiya: 'Косметология',
 };
 
 const normalizeText = (value: unknown): string | null => {
@@ -22,7 +16,7 @@ const normalizeKey = (value: unknown): string | null => normalizeText(value)?.to
 const isSlugLike = (value: string): boolean => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value.trim().toLowerCase());
 
 const prettifySlug = (slug: string): string => {
-  const known = KNOWN_CATEGORY_LABELS[slug];
+  const known = formatPartnerCategoryLabel(slug);
   if (known) return known;
   return slug
     .split('-')
@@ -63,7 +57,7 @@ export const buildDedupedCategories = (partners: ApiPartner[]): CatalogCategory[
   const byName = new Map<string, CatalogCategory>();
   const translitNameToSlug = new Map<string, string>();
 
-  Object.entries(KNOWN_CATEGORY_LABELS).forEach(([slug, label]) => {
+  [['krasota', 'Красота'], ['manikyur-pedikyur', 'Маникюр / педикюр'], ['brovi-resnitsy', 'Брови / ресницы'], ['kosmetologiya', 'Косметология']].forEach(([slug, label]) => {
     translitNameToSlug.set(normalizeKey(label) ?? label.toLowerCase(), slug);
   });
 
@@ -82,7 +76,7 @@ export const buildDedupedCategories = (partners: ApiPartner[]): CatalogCategory[
       ?? (rawLabel && isSlugLike(rawLabel) ? normalizeKey(rawLabel) : null);
 
     const displayLabel = rawLabel
-      ? (isSlugLike(rawLabel) ? prettifySlug(rawLabel.toLowerCase()) : rawLabel)
+      ? (formatPartnerCategoryLabel(rawLabel) ?? (isSlugLike(rawLabel) ? prettifySlug(rawLabel.toLowerCase()) : rawLabel))
       : (inferredSlug ? prettifySlug(inferredSlug) : null);
     const nameKey = normalizeKey(displayLabel);
 

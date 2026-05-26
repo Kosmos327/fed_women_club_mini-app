@@ -5,7 +5,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getPartnerImageSrc } from '../utils/partnerImage';
 import type { ApiCity, ApiPartner } from '../api/client';
-import { formatPartnerCategoryLabel, formatPartnerCityLabel, getPartnerCategoryName } from '../utils/format';
+import { getPartnerCategoryDisplayLabel, getPartnerCityDisplayLabel } from '../utils/format';
 import { buildDedupedCategories } from '../utils/catalogCategories';
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
@@ -112,14 +112,13 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
           <Div className="partner-catalog-grid">
             {partners.map((partner, index) => {
               const partnerName = partner.name ?? partner.title ?? 'Партнёр клуба';
-              const partnerCityRaw = partner.city_name ?? partner.city;
               const partnerAddress = normalizeCatalogText(partner.address);
               const rawDescription = normalizeCatalogText(partner.description ?? partner.short_description);
               const partnerDescription = truncateCatalogLine(trimAddressPrefix(rawDescription, partnerAddress), 160);
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
-              const normalizedCategory = formatPartnerCategoryLabel(getPartnerCategoryName(partner));
-              const partnerCity = formatPartnerCityLabel(partnerCityRaw);
+              const normalizedCategory = getPartnerCategoryDisplayLabel(partner);
+              const partnerCity = getPartnerCityDisplayLabel(partner);
               const noImage = !partnerImage;
 
               return (

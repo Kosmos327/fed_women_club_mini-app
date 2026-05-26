@@ -2,7 +2,7 @@ import { Button, Card, Div, Group, Spacing, Text, Title } from '@vkontakte/vkui'
 import { useState } from 'react';
 import { AppShell } from '../components/AppShell';
 import type { ApiOffer, ApiPartner, ApiVerification } from '../api/client';
-import { formatDateTime, formatPartnerCategoryLabel, formatPartnerCityLabel, formatVerificationStatus, getPartnerCategoryName } from '../utils/format';
+import { formatDateTime, formatVerificationStatus, getPartnerCategoryDisplayLabel, getPartnerCityDisplayLabel } from '../utils/format';
 import { getPartnerImages } from '../utils/partnerImage';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getOfferImages } from '../utils/offerImage';
@@ -95,10 +95,8 @@ export function PartnerPage({
   const partnerDescription = selectedPartner?.description ?? selectedPartner?.short_description;
   const partnerBenefit = selectedPartner?.discount_text ?? selectedPartner?.benefit_text;
   const partnerId = selectedPartner?.id != null ? String(selectedPartner.id) : '';
-  const partnerCityRaw = selectedPartner?.city_name ?? selectedPartner?.city;
-  const partnerCategoryRaw = selectedPartner ? getPartnerCategoryName(selectedPartner) : null;
-  const partnerCity = formatPartnerCityLabel(partnerCityRaw);
-  const partnerCategory = formatPartnerCategoryLabel(partnerCategoryRaw);
+  const partnerCity = selectedPartner ? getPartnerCityDisplayLabel(selectedPartner) : null;
+  const partnerCategory = selectedPartner ? getPartnerCategoryDisplayLabel(selectedPartner) : null;
   const partnerImages = getPartnerImages(selectedPartner);
   const hasPartnerImage = partnerImages.length > 0;
   const descriptionText = cleanValue(partnerDescription);
@@ -127,19 +125,12 @@ export function PartnerPage({
   pushLink('Маршрут', mapUrl);
   pushLink('Сайт', socialUrl);
 
-  const getPartnerInitial = (name: string): string => {
-    const trimmed = name.trim();
-    const firstSymbol = Array.from(trimmed)[0];
-    return firstSymbol ? firstSymbol.toLocaleUpperCase('ru-RU') : 'П';
-  };
-
   const normalizedDescription = descriptionText && partnerAddress
     ? descriptionText.trim().toLowerCase().startsWith(partnerAddress.trim().toLowerCase())
       ? cleanValue(descriptionText.slice(partnerAddress.length))
       : descriptionText
     : descriptionText;
 
-  const partnerInitial = getPartnerInitial(partnerName);
   const verificationOfferLabel = getVerificationOfferLabel(createdVerification, offers, selectedOfferIdForVerification);
   const selectedOfferImages = getOfferImages(selectedOfferForGallery);
   if (import.meta.env.DEV && selectedPartner) {
@@ -162,7 +153,7 @@ export function PartnerPage({
                 alt={partnerName}
                 className="partner-hero__image"
                 placeholderClassName={`partner-hero__placeholder ${!hasPartnerImage ? 'partner-hero__placeholder--compact' : ''}`}
-                placeholderLabel={partnerInitial}
+                placeholderLabel="✦"
               />
               {partnerImages.length > 0 ? (
                 <Button
