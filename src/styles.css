@@ -111,7 +111,15 @@ body {
   gap: 14px;
 }
 
-.partner-card__image,
+.partner-card__image {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  object-position: center center;
+  background: rgba(255, 255, 255, 0.45);
+}
+
 .partner-hero__image {
   display: block;
   width: 100%;
@@ -257,7 +265,22 @@ body {
 }
 
 .partner-card__image,
-.partner-card__placeholder { min-height: 220px; }
+.partner-card__placeholder { min-height: 180px; }
+
+.partner-card__address {
+  margin-top: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.partner-card__description {
+  margin-top: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .partner-hero__image,
 .partner-hero__placeholder { min-height: 280px; }

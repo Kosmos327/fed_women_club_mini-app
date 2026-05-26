@@ -5,18 +5,36 @@ import { EmptyState } from '../components/EmptyState';
 import { ImageWithFallback } from '../components/ImageWithFallback';
 import { getPartnerImageSrc } from '../utils/partnerImage';
 import type { ApiCity, ApiPartner } from '../api/client';
-import { getPartnerCategoryName } from '../utils/format';
+import { formatPartnerCategoryLabel, formatPartnerCityLabel, getPartnerCategoryName } from '../utils/format';
 import { buildDedupedCategories } from '../utils/catalogCategories';
 
 const URL_REGEX = /(https?:\/\/[^\s]+)/gi;
 
-function getCatalogDescription(value?: string): string | null {
+function normalizeCatalogText(value?: string | null): string | null {
   if (!value) return null;
   const withoutLinks = value.replace(URL_REGEX, ' ').replace(/\s+/g, ' ').trim();
-  if (!withoutLinks) return null;
-  const maxLength = 140;
-  if (withoutLinks.length <= maxLength) return withoutLinks;
-  return `${withoutLinks.slice(0, maxLength - 1).trimEnd()}…`;
+  return withoutLinks || null;
+}
+
+function trimAddressPrefix(description: string | null, address: string | null): string | null {
+  if (!description) return null;
+  if (!address) return description;
+
+  const normalizedDescription = description.trim();
+  const normalizedAddress = address.trim();
+  if (!normalizedDescription || !normalizedAddress) return normalizedDescription || null;
+
+  const escapedAddress = normalizedAddress.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const leadingAddressPattern = new RegExp(`^${escapedAddress}[,.:;\\-\\s]*`, 'i');
+  const withoutAddress = normalizedDescription.replace(leadingAddressPattern, '').trim();
+
+  return withoutAddress || null;
+}
+
+function truncateCatalogLine(value: string | null, maxLength: number): string | null {
+  if (!value) return null;
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength - 1).trimEnd()}…`;
 }
 
 type CatalogPageProps = {
@@ -94,11 +112,14 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
           <Div className="partner-catalog-grid">
             {partners.map((partner, index) => {
               const partnerName = partner.name ?? partner.title ?? 'Партнёр клуба';
-              const partnerCity = partner.city_name ?? partner.city;
-              const partnerDescription = getCatalogDescription(partner.description ?? partner.short_description);
+              const partnerCityRaw = partner.city_name ?? partner.city;
+              const partnerAddress = normalizeCatalogText(partner.address);
+              const rawDescription = normalizeCatalogText(partner.description ?? partner.short_description);
+              const partnerDescription = truncateCatalogLine(trimAddressPrefix(rawDescription, partnerAddress), 160);
               const partnerBenefit = partner.discount_text ?? partner.benefit_text;
               const partnerImage = getPartnerImageSrc(partner);
-              const normalizedCategory = getPartnerCategoryName(partner);
+              const normalizedCategory = formatPartnerCategoryLabel(getPartnerCategoryName(partner));
+              const partnerCity = formatPartnerCityLabel(partnerCityRaw);
               const noImage = !partnerImage;
 
               return (
@@ -110,7 +131,7 @@ export function CatalogPage({ partners, cities, selectedCityId, selectedCategory
                       {normalizedCategory ? <span className="bloom-badge">{normalizedCategory}</span> : null}
                       {partnerCity ? <span className="bloom-badge">{partnerCity}</span> : null}
                     </div>
-                    {partner.address ? <Text className="partner-card__address">{partner.address}</Text> : null}
+                    {partnerAddress ? <Text className="partner-card__address">{truncateCatalogLine(partnerAddress, 80)}</Text> : null}
                     {partnerDescription ? <Text className="partner-card__description">{partnerDescription}</Text> : null}
                     {partnerBenefit ? <Text className="partner-card__benefit">{partnerBenefit}</Text> : null}
                     <Button className="bloom-button-primary partner-card__button" mode="secondary" stretched size="m" onClick={(event) => { event.stopPropagation(); onPartnerClick(partner); }}>Подробнее</Button>
