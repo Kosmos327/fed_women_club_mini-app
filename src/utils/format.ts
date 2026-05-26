@@ -71,7 +71,7 @@ export function formatMoney(value: string | number | null | undefined, suffix = 
   return `${Math.round(normalized).toLocaleString('ru-RU')} ${suffix}`;
 }
 
-
+type NameLikeObject = Record<string, unknown>;
 
 const PARTNER_CATEGORY_LABELS: Record<string, string> = {
   krasota: 'Красота',
@@ -88,131 +88,98 @@ const PARTNER_CITY_LABELS: Record<string, string> = {
   'череповец': 'Череповец',
 };
 
-function toPrettyLabel(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) return '';
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+function normalizeDisplayText(value: string): string {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+function capitalizeFirst(value: string): string {
+  if (!value) return value;
+  const [firstChar, ...tail] = Array.from(value);
+  return `${firstChar.toLocaleUpperCase('ru-RU')}${tail.join('')}`;
 }
 
 function normalizeLookupKey(value: string): string {
-  return value.trim().toLowerCase();
+  return normalizeDisplayText(value).toLowerCase();
 }
 
-export function formatPartnerCategoryLabel(value?: string | null): string | null {
-  if (typeof value !== 'string') return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const mapped = PARTNER_CATEGORY_LABELS[normalizeLookupKey(trimmed)];
-  return mapped ?? toPrettyLabel(trimmed);
-}
-
-export function formatPartnerCityLabel(value?: string | null): string | null {
-  if (typeof value !== 'string') return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const mapped = PARTNER_CITY_LABELS[normalizeLookupKey(trimmed)];
-  return mapped ?? toPrettyLabel(trimmed);
-}
-
-export function normalizePartnerCategoryName(value: unknown): string | null {
-  if (typeof value === 'string') {
-    const normalized = value.trim();
+function extractDisplayValue(input: unknown): string | null {
+  if (typeof input === 'string') {
+    const normalized = normalizeDisplayText(input);
     return normalized.length > 0 ? normalized : null;
   }
 
-  if (value && typeof value === 'object') {
-    const categoryObject = value as Record<string, unknown>;
-    for (const key of ['name', 'title', 'slug']) {
-      const candidate = categoryObject[key];
-      if (typeof candidate === 'string' && candidate.trim().length > 0) {
-        return candidate.trim();
-      }
+  if (!input || typeof input !== 'object') return null;
+
+  const objectValue = input as NameLikeObject;
+  for (const key of ['name', 'title', 'label', 'slug']) {
+    const candidate = objectValue[key];
+    if (typeof candidate === 'string') {
+      const normalized = normalizeDisplayText(candidate);
+      if (normalized) return normalized;
     }
   }
 
   return null;
 }
 
-export function getPartnerCategoryName(partner: {
-  category?: unknown;
-  category_name?: unknown;
-  service_category?: unknown;
-  type?: unknown;
-}): string | null {
-  return (
-    normalizePartnerCategoryName(partner.category) ??
-    normalizePartnerCategoryName(partner.category_name) ??
-    normalizePartnerCategoryName(partner.service_category) ??
-    normalizePartnerCategoryName(partner.type)
-  );
+function formatPartnerLabel(value: unknown, knownLabels: Record<string, string>): string | null {
+  const source = extractDisplayValue(value);
+  if (!source) return null;
+
+  const lookupKey = normalizeLookupKey(source);
+  const known = knownLabels[lookupKey];
+  if (known) return known;
+
+  const looksLikeRussianLower = /^[а-яё0-9\s-]+$/i.test(source) && source === source.toLocaleLowerCase('ru-RU');
+  if (looksLikeRussianLower) return capitalizeFirst(source);
+
+  return source;
 }
 
-export function getPartnerCategoryNames(partner: {
-  category?: unknown;
-  category_name?: unknown;
-  service_category?: unknown;
-  type?: unknown;
-}): string[] {
-  const values = [partner.category, partner.category_name, partner.service_category, partner.type];
-  const names = new Set<string>();
-
-  values.forEach((value) => {
-    if (Array.isArray(value)) {
-      value.forEach((entry) => {
-        const normalized = normalizePartnerCategoryName(entry);
-        if (normalized) names.add(normalized);
-      });
-      return;
-    }
-
-    if (typeof value === 'string' && /[,/|]/.test(value)) {
-      value.split(/[,/|]/).forEach((chunk) => {
-        const normalized = normalizePartnerCategoryName(chunk);
-        if (normalized) names.add(normalized);
-      });
-      return;
-    }
-
-    const normalized = normalizePartnerCategoryName(value);
-    if (normalized) names.add(normalized);
-  });
-
-  return Array.from(names);
+export function formatPartnerCategoryLabel(value: unknown): string | null {
+  return formatPartnerLabel(value, PARTNER_CATEGORY_LABELS);
 }
 
-export function getPartnerCategorySlugs(partner: {
-  category_slugs?: unknown;
-  categories?: unknown;
-  category_slug?: unknown;
-  category?: unknown;
-}): string[] {
-  const slugs = new Set<string>();
-  const normalizeSlug = (value: unknown): string | null => {
-    if (typeof value !== 'string') return null;
-    const trimmed = value.trim().toLowerCase();
-    return trimmed.length > 0 ? trimmed : null;
-  };
+export function formatPartnerCityLabel(value: unknown): string | null {
+  return formatPartnerLabel(value, PARTNER_CITY_LABELS);
+}
 
-  const push = (value: unknown) => {
-    if (Array.isArray(value)) {
-      value.forEach((entry) => push(entry));
-      return;
-    }
+function collectPartnerFieldCandidates(value: unknown, output: unknown[]): void {
+  if (value == null) return;
+  if (Array.isArray(value)) {
+    value.forEach((entry) => collectPartnerFieldCandidates(entry, output));
+    return;
+  }
+  output.push(value);
+}
 
-    if (value && typeof value === 'object') {
-      const obj = value as Record<string, unknown>;
-      push(obj.slug);
-      return;
-    }
+export function getPartnerCategoryDisplayLabel(partner: Record<string, unknown>): string | null {
+  const rawCandidates: unknown[] = [];
 
-    const normalized = normalizeSlug(value);
-    if (normalized) slugs.add(normalized);
-  };
+  collectPartnerFieldCandidates(partner.category, rawCandidates);
+  collectPartnerFieldCandidates(partner.category_name, rawCandidates);
+  collectPartnerFieldCandidates(partner.category_slug, rawCandidates);
+  collectPartnerFieldCandidates(partner.categories, rawCandidates);
 
-  push(partner.category_slugs);
-  push(partner.categories);
-  push(partner.category_slug);
-  push(partner.category);
+  for (const candidate of rawCandidates) {
+    const formatted = formatPartnerCategoryLabel(candidate);
+    if (formatted) return formatted;
+  }
 
-  return Array.from(slugs);
+  return null;
+}
+
+export function getPartnerCityDisplayLabel(partner: Record<string, unknown>): string | null {
+  const rawCandidates: unknown[] = [];
+
+  collectPartnerFieldCandidates(partner.city, rawCandidates);
+  collectPartnerFieldCandidates(partner.city_name, rawCandidates);
+  collectPartnerFieldCandidates(partner.city_slug, rawCandidates);
+
+  for (const candidate of rawCandidates) {
+    const formatted = formatPartnerCityLabel(candidate);
+    if (formatted) return formatted;
+  }
+
+  return null;
 }
